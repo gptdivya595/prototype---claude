@@ -1,32 +1,35 @@
 {
   "id": "shared_contracts",
   "version": "0.1.0",
+  "purpose": "Screen-level contract aligned to the current frontend and backend implementation.",
   "types": {
     "WorkModeUiState": [
       "idle",
-      "typing_prompt",
+      "submitted",
       "analyzing",
       "reviewing_detection",
       "choosing_suggestions",
-      "creating_work_plan",
-      "editing_plan",
-      "saving_plan",
-      "save_failed",
+      "editing_work_plan",
       "approved",
       "generating",
-      "generation_cancelled",
       "complete",
       "error"
     ],
+    "GenerationStatus": ["idle", "generating", "cancelled", "complete", "failed"],
+    "AutosaveStatus": ["idle", "saving", "saved", "failed"],
+    "WorkPlanStatus": ["draft", "approved", "generated"],
     "WorkRole": [
       "Product Manager",
       "Researcher",
       "Developer",
+      "Software Architect",
+      "Data Analyst",
       "Founder",
       "Business Analyst",
       "Designer",
       "Marketer",
       "Executive",
+      "Career Coach",
       "Unknown"
     ],
     "WorkArtifact": [
@@ -38,55 +41,136 @@
       "Strategy Memo",
       "Competitive Analysis",
       "Technical Design",
+      "Architecture Review",
+      "Backend API",
+      "Frontend App",
       "Data Analysis",
+      "Career Roadmap",
+      "Implementation Plan",
+      "General Roadmap",
       "Unknown"
     ],
     "WorkflowId": [
       "slide_deck",
       "prd_generation",
       "debugging_bug_fix",
-      "technical_architecture",
-      "competitive_analysis",
+      "backend_software",
+      "frontend_web",
+      "architecture_review",
       "research_report",
+      "analytics_plan",
+      "complex_coding",
+      "career_path",
+      "generic_workflow"
+    ],
+    "PlannedWorkflowId": [
+      "competitive_analysis",
       "brd_generation",
       "strategy_memo",
-      "code_implementation",
-      "data_analysis_plan"
+      "career_transition_plan"
     ],
     "SkillId": [
       "investor_deck_builder",
       "prd_builder",
-      "bug_fix_planner"
+      "bug_fix_planner",
+      "backend_api_builder",
+      "frontend_app_builder",
+      "architecture_reviewer",
+      "research_synthesizer",
+      "analytics_planner",
+      "complex_code_planner",
+      "career_path_coach",
+      "general_workflow_planner"
     ],
     "ModuleId": [
       "assumptions",
-      "sources_required",
       "competitor_analysis",
-      "market_landscape",
+      "investor_framing",
+      "sources_required",
+      "root_cause_analysis",
+      "test_cases",
+      "metrics",
+      "user_personas",
       "validation_checklist",
       "risk_analysis",
       "implementation_plan",
-      "metrics",
-      "user_personas",
-      "investor_framing",
-      "root_cause_analysis",
-      "test_cases",
+      "market_landscape",
       "api_examples",
       "database_schema",
       "tradeoff_analysis"
     ],
-    "SourceMode": [
-      "none",
-      "source_needed_only",
-      "user_uploaded",
-      "web_search"
-    ],
-    "WorkPlanStatus": [
-      "draft",
-      "approved",
-      "generated"
-    ]
+    "SourceMode": ["none", "source_needed_only", "user_uploaded", "web_search"],
+    "RoadmapDepth": ["L1", "L2", "L3", "L4"],
+    "RiskLevel": ["low", "medium", "high", "restricted"]
   },
+  "workflowMap": [
+    {
+      "workflowId": "slide_deck",
+      "label": "Investor / Slide Deck Roadmap",
+      "skillId": "investor_deck_builder",
+      "defaultDepth": "L3"
+    },
+    {
+      "workflowId": "prd_generation",
+      "label": "Product Requirements Roadmap",
+      "skillId": "prd_builder",
+      "defaultDepth": "L2"
+    },
+    {
+      "workflowId": "debugging_bug_fix",
+      "label": "Debugging / Bug Fix Roadmap",
+      "skillId": "bug_fix_planner",
+      "defaultDepth": "L2"
+    },
+    {
+      "workflowId": "backend_software",
+      "label": "Backend Software Roadmap",
+      "skillId": "backend_api_builder",
+      "defaultDepth": "L3"
+    },
+    {
+      "workflowId": "frontend_web",
+      "label": "Frontend Web Roadmap",
+      "skillId": "frontend_app_builder",
+      "defaultDepth": "L3"
+    },
+    {
+      "workflowId": "architecture_review",
+      "label": "Architecture Review Roadmap",
+      "skillId": "architecture_reviewer",
+      "defaultDepth": "L4"
+    },
+    {
+      "workflowId": "research_report",
+      "label": "Research Report Roadmap",
+      "skillId": "research_synthesizer",
+      "defaultDepth": "L3"
+    },
+    {
+      "workflowId": "analytics_plan",
+      "label": "Analytics Roadmap",
+      "skillId": "analytics_planner",
+      "defaultDepth": "L3"
+    },
+    {
+      "workflowId": "complex_coding",
+      "label": "Complex Coding Roadmap",
+      "skillId": "complex_code_planner",
+      "defaultDepth": "L3"
+    },
+    {
+      "workflowId": "career_path",
+      "label": "Career Path Roadmap",
+      "skillId": "career_path_coach",
+      "defaultDepth": "L2"
+    },
+    {
+      "workflowId": "generic_workflow",
+      "label": "Generic Work Roadmap",
+      "skillId": "general_workflow_planner",
+      "defaultDepth": "L2"
+    }
+  ],
   "apiEnvelope": {
     "success": {
       "ok": true,
@@ -104,6 +188,44 @@
     }
   },
   "apiContracts": {
+    "health": {
+      "method": "GET",
+      "path": "/api/work-mode/health",
+      "responseData": {
+        "status": "healthy",
+        "namespace": "work-mode",
+        "implementedPhase": 12,
+        "openAiConfigured": "boolean",
+        "features": {
+          "llmClassifier": "boolean",
+          "llmWorkPlan": "boolean",
+          "llmAnswer": "boolean",
+          "sseStreaming": false,
+          "webSocket": false,
+          "persistence": "memory"
+        }
+      }
+    },
+    "listSkills": {
+      "method": "GET",
+      "path": "/api/work-mode/skills",
+      "responseData": {
+        "skills": ["WorkModeSkill"],
+        "workflows": ["WorkflowDefinition"],
+        "modules": ["ModuleDefinition"],
+        "roles": ["WorkRole"],
+        "artifacts": ["WorkArtifact"],
+        "sourceModes": ["SourceMode"],
+        "riskLevels": ["RiskLevel"],
+        "roadmapDepthLevels": ["RoadmapDepthLevel"],
+        "plannedWorkflowIds": ["PlannedWorkflowId"],
+        "transport": {
+          "mode": "http",
+          "webSocket": false,
+          "sseStreaming": false
+        }
+      }
+    },
     "analyzePrompt": {
       "method": "POST",
       "path": "/api/work-mode/analyze",
@@ -115,40 +237,32 @@
       "responseData": {
         "analysisId": "string",
         "conversationId": "string",
+        "mode": "work",
         "detectedRole": "WorkRole",
         "detectedArtifact": "WorkArtifact",
+        "taskCategory": "string",
+        "intentCategory": "string",
+        "confidence": "number",
+        "confidenceBand": "high | medium | low",
         "recommendedWorkflowId": "WorkflowId",
         "recommendedSkillId": "SkillId",
-        "confidence": "number",
-        "reason": "string",
         "recommendedModuleIds": ["ModuleId"],
+        "selectedModuleIds": ["ModuleId"],
         "sourceMode": "SourceMode",
-        "skillCandidates": [
-          {
-            "skillId": "SkillId",
-            "score": "number",
-            "matchedSignals": ["string"]
-          }
-        ],
-        "questionsForUser": ["string"]
-      }
-    },
-    "listSkills": {
-      "method": "GET",
-      "path": "/api/work-mode/skills",
-      "responseData": {
-        "skills": [
-          {
-            "id": "SkillId",
-            "label": "string",
-            "description": "string",
-            "workflowId": "WorkflowId",
-            "supportedRoles": ["WorkRole"],
-            "supportedArtifacts": ["WorkArtifact"],
-            "defaultModuleIds": ["ModuleId"],
-            "optionalModuleIds": ["ModuleId"]
-          }
-        ]
+        "roadmapDepth": "RoadmapDepth",
+        "riskLevel": "RiskLevel",
+        "reason": "string",
+        "matchedSignals": ["string"],
+        "alternatives": ["Candidate<WorkflowId>"],
+        "questionsForUser": ["string"],
+        "candidates": {
+          "roles": ["Candidate<WorkRole>"],
+          "artifacts": ["Candidate<WorkArtifact>"],
+          "modules": ["Candidate<ModuleId>"],
+          "workflows": ["Candidate<WorkflowId>"]
+        },
+        "llm": "optional LLM metadata",
+        "createdAt": "ISODate"
       }
     },
     "createWorkPlan": {
@@ -164,6 +278,12 @@
         "sourceMode": "SourceMode"
       },
       "responseData": "WorkPlanRecord"
+    },
+    "getWorkPlan": {
+      "method": "GET",
+      "path": "/api/work-mode/work-plans/:id",
+      "responseData": "WorkPlanRecord",
+      "frontendStatus": "Backend route exists; current React client does not call it yet."
     },
     "updateWorkPlan": {
       "method": "PATCH",
@@ -186,21 +306,27 @@
       "method": "POST",
       "path": "/api/work-mode/work-plans/:id/generate",
       "request": {
-        "answerFormat": "markdown",
-        "stream": false
+        "version": "number | optional"
       },
       "responseData": {
         "answerId": "string",
         "workPlanId": "string",
+        "generatedFromVersion": "number",
         "answer": "string",
-        "validation": "ValidationResult"
+        "validation": "ValidationResult",
+        "llm": "optional LLM metadata",
+        "createdAt": "ISODate"
       }
     }
   },
   "analyticsEvents": [
-    "workmode_prompt_submitted",
-    "analysis_started",
+    "prompt_submitted",
     "analysis_completed",
+    "work_plan_approved",
+    "generation_started",
+    "generation_completed",
+    "generation_failed",
+    "generation_cancelled",
     "role_override_changed",
     "artifact_override_changed",
     "skill_changed",
@@ -213,20 +339,14 @@
     "workplan_section_edited",
     "workplan_autosave_started",
     "workplan_autosave_completed",
-    "workplan_autosave_failed",
-    "workplan_approved",
-    "generation_started",
-    "generation_cancelled",
-    "generation_completed",
-    "generation_failed",
-    "validation_completed"
+    "workplan_autosave_failed"
   ],
   "globalClickActions": {
-    "submitPrompt": "Analyze prompt when mode is Work; otherwise append normal chat message.",
-    "changeMode": "Update selected mode; if leaving Work Mode with unsaved draft, ask for confirmation.",
-    "retryApiCall": "Repeat last failed API call with same payload when safe.",
-    "cancelGeneration": "Abort active request or close SSE stream.",
+    "submitPrompt": "Click Send or press Enter. Shift+Enter inserts a newline. Work Mode calls analyze; other modes append a normal chat message.",
+    "changeMode": "Update selected effort/mode. Work remains the plan-first mode.",
+    "retryApiCall": "Repeat last failed API call when it is safe.",
+    "cancelGeneration": "Abort the active HTTP request using AbortController and return to approved state.",
     "copyAnswer": "Copy final answer markdown to clipboard.",
-    "startNewChat": "If unsaved draft exists, ask for confirmation before clearing state."
+    "startNewChat": "Clear local conversation and Work Mode draft state after any confirmation needed."
   }
 }

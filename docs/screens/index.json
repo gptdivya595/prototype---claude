@@ -2,33 +2,47 @@
   "product": "Work Mode",
   "version": "0.1.0",
   "purpose": "Master index of all app screens, workflows, click actions, state transitions, and API touchpoints.",
+  "implementationSourceOfTruth": [
+    "frontend/src/App.tsx",
+    "backend/routes/workMode.ts",
+    "backend/templates/registries.ts",
+    "backend/templates/workflows.ts",
+    "backend/templates/skillCatalog.ts"
+  ],
   "principles": [
     "Work Mode creates an editable external Work Plan, not hidden model reasoning.",
     "Final answer generation is blocked until a Work Plan is approved.",
-    "Editing after approval resets the plan to draft.",
+    "Editing after approval resets the plan to draft and makes any previous answer stale.",
     "Frontend never calls OpenAI directly.",
-    "All backend calls go through /api/work-mode/*."
+    "All Work Mode backend calls go through /api/work-mode/*.",
+    "HTTP JSON is the current MVP transport; WebSocket and SSE are future upgrades only."
   ],
   "globalStateMachine": {
     "states": [
       "idle",
-      "typing_prompt",
+      "submitted",
       "analyzing",
       "reviewing_detection",
       "choosing_suggestions",
-      "creating_work_plan",
-      "editing_plan",
-      "saving_plan",
-      "save_failed",
+      "editing_work_plan",
       "approved",
       "generating",
-      "generation_cancelled",
       "complete",
       "error"
     ],
     "defaultState": "idle",
     "terminalStates": ["complete"],
-    "recoverableStates": ["save_failed", "generation_cancelled", "error"]
+    "recoverableStates": ["approved", "error"],
+    "subStates": {
+      "autosaveStatus": ["idle", "saving", "saved", "failed"],
+      "generationStatus": ["idle", "generating", "cancelled", "complete", "failed"],
+      "workPlanStatus": ["draft", "approved", "generated"]
+    },
+    "notes": [
+      "A cancelled generation sets generationStatus to cancelled and returns the main WorkModeUiState to approved.",
+      "Autosave failures are represented by autosaveStatus=failed while the main screen remains editing_work_plan.",
+      "There is no standalone creating_work_plan or saving_plan main UI state in the current React implementation."
+    ]
   },
   "screenFiles": [
     {
@@ -39,7 +53,7 @@
     {
       "id": "empty_prompt",
       "file": "02_empty_prompt.json",
-      "description": "Initial Work Mode prompt entry state."
+      "description": "Initial Work Mode prompt entry state. Enter submits; Shift+Enter inserts a newline."
     },
     {
       "id": "analyzing_prompt",
@@ -49,7 +63,7 @@
     {
       "id": "detection_summary",
       "file": "04_detection_summary.json",
-      "description": "Detected role, artifact, workflow, skill, confidence, and overrides."
+      "description": "Detected role, artifact, workflow, skill, confidence, alternatives, and overrides."
     },
     {
       "id": "skill_and_suggestions",
@@ -59,7 +73,7 @@
     {
       "id": "work_plan_editor",
       "file": "06_work_plan_editor.json",
-      "description": "Editable Work Plan roadmap editor."
+      "description": "Editable Work Plan roadmap editor with 550ms autosave."
     },
     {
       "id": "approval_bar",
@@ -69,7 +83,7 @@
     {
       "id": "generation_progress",
       "file": "08_generation_progress.json",
-      "description": "Answer generation loading, cancel, retry, and optional streaming state."
+      "description": "HTTP answer generation loading, cancel, retry, and validation handoff."
     },
     {
       "id": "answer_and_validation",
@@ -109,11 +123,29 @@
     "answer_and_validation"
   ],
   "primaryApiFlow": [
-    "POST /api/work-mode/analyze",
+    "GET /api/work-mode/health",
     "GET /api/work-mode/skills",
+    "POST /api/work-mode/analyze",
     "POST /api/work-mode/work-plans",
     "PATCH /api/work-mode/work-plans/:id",
     "POST /api/work-mode/work-plans/:id/approve",
     "POST /api/work-mode/work-plans/:id/generate"
-  ]
+  ],
+  "roadmapCoverage": {
+    "implementedWorkflowCount": 11,
+    "implementedWorkflows": [
+      "slide_deck",
+      "prd_generation",
+      "debugging_bug_fix",
+      "backend_software",
+      "frontend_web",
+      "architecture_review",
+      "research_report",
+      "analytics_plan",
+      "complex_coding",
+      "career_path",
+      "generic_workflow"
+    ],
+    "fallbackWorkflow": "generic_workflow"
+  }
 }

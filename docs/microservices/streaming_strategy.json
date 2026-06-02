@@ -1,12 +1,13 @@
 {
   "version": "0.1.0",
   "decision": {
-    "mvp": "http",
-    "optionalUpgrade": "sse",
-    "webSocket": "not_for_mvp",
-    "phase11Implementation": "HTTP JSON generation with frontend AbortController; backend checks disconnect before persisting generated output."
+    "currentImplementation": "http_json",
+    "sseImplemented": false,
+    "webSocketImplemented": false,
+    "phase12Implementation": "HTTP JSON generation with frontend AbortController; backend checks disconnect before persisting generated output."
   },
   "httpRequestResponse": {
+    "status": "implemented",
     "useFor": [
       "health",
       "skills",
@@ -20,21 +21,28 @@
       "Simple to implement",
       "Easy to debug",
       "Works well on Vercel + Render",
-      "Enough for first prototype"
+      "Enough for first prototype",
+      "Compatible with AbortController cancellation"
     ],
     "cons": [
       "No token-by-token answer display",
       "Long generation feels less interactive"
     ]
   },
+  "currentCancellation": {
+    "frontend": "AbortController.abort() cancels the fetch request for /generate.",
+    "backend": "generate route receives shouldCancelBeforePersist and skips saving output if the client disconnected before persistence.",
+    "uiStateAfterCancel": "Main WorkModeUiState returns to approved; generationStatus becomes cancelled."
+  },
   "sse": {
-    "useWhen": [
+    "status": "future_only_not_implemented",
+    "addWhen": [
       "Answer generation feels slow",
       "User should see answer stream as it is generated",
       "One-way server-to-client progress is enough"
     ],
-    "endpoint": "POST /api/work-mode/work-plans/:id/generate-stream",
-    "events": [
+    "proposedEndpoint": "POST /api/work-mode/work-plans/:id/generate-stream",
+    "proposedEvents": [
       {
         "event": "generation.started",
         "payload": {
@@ -82,6 +90,7 @@
     "fallback": "Use normal /generate endpoint if SSE fails."
   },
   "webSocket": {
+    "status": "future_only_not_implemented",
     "useInMvp": false,
     "addOnlyIf": [
       "Multiple users edit the same Work Plan",

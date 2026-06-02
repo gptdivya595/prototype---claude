@@ -1,17 +1,18 @@
 {
   "id": "detection_summary",
   "name": "Detection Summary",
-  "purpose": "Let user review and override detected role, artifact, workflow, skill, confidence, and source mode.",
+  "purpose": "Let user review and override detected role, artifact, workflow, confidence, alternatives, and source mode before suggestions.",
   "state": "reviewing_detection",
   "visibleComponents": [
     "prompt_preview",
     "role_selector",
     "artifact_selector",
     "workflow_selector",
-    "skill_recommendation",
     "confidence_badge",
     "reason_panel",
-    "alternative_skills",
+    "source_mode_panel",
+    "questions_panel",
+    "alternative_workflows",
     "continue_button"
   ],
   "fields": [
@@ -32,12 +33,6 @@
       "type": "select",
       "optionsRef": "WorkflowId",
       "defaultFrom": "recommendedWorkflowId"
-    },
-    {
-      "id": "skillOverride",
-      "type": "select",
-      "optionsRef": "SkillId",
-      "defaultFrom": "recommendedSkillId"
     }
   ],
   "clickActions": [
@@ -53,28 +48,26 @@
       "target": "artifact_selector",
       "action": "setArtifactOverride",
       "analyticsEvent": "artifact_override_changed",
-      "sideEffects": ["recomputeWorkflowCandidates"]
+      "sideEffects": ["recomputeWorkflowCandidatesInUiWhenSupported"]
     },
     {
       "id": "change_workflow",
       "target": "workflow_selector",
       "action": "setWorkflowOverride",
-      "sideEffects": ["recomputeSkillCandidates", "recomputeSuggestedModules"]
+      "sideEffects": ["skillAndModuleDefaultsWillRefreshOnSuggestionsScreen"]
     },
     {
-      "id": "select_alternative_skill",
-      "target": "alternative_skill_item",
-      "action": "setSkillOverride",
-      "analyticsEvent": "skill_changed",
-      "sideEffects": ["recomputeWorkflowFromSkill", "recomputeSuggestedModules"]
+      "id": "select_alternative_workflow",
+      "target": "alternative_workflow_item",
+      "action": "setWorkflowOverride",
+      "sideEffects": ["highlightSelectedWorkflow"]
     },
     {
       "id": "continue_to_suggestions",
       "target": "continue_button",
       "preconditions": [
         "analysisId exists",
-        "selectedWorkflowId exists",
-        "selectedSkillId exists"
+        "selectedWorkflowId exists"
       ],
       "action": "navigate",
       "nextScreen": "skill_and_suggestions",
@@ -99,14 +92,28 @@
       "extraBehavior": "Show alternatives and ask user to confirm before continuing."
     }
   ],
+  "displayRules": [
+    {
+      "id": "source_mode_notice",
+      "behavior": "Show detected source mode and clarify that retrieval/web search is not connected in the current prototype."
+    },
+    {
+      "id": "generic_fallback",
+      "behavior": "If confidence is low or no specialized workflow wins, generic_workflow remains a valid selection."
+    },
+    {
+      "id": "alternatives",
+      "behavior": "Render alternatives as workflow choices with confidence and reason."
+    }
+  ],
   "edgeCases": [
     {
       "case": "unknown_role",
-      "behavior": "Allow Unknown but require workflow and skill selection before continuing."
+      "behavior": "Allow Unknown but require workflow selection before continuing."
     },
     {
       "case": "user_changes_artifact_to_incompatible_value",
-      "behavior": "Recompute compatible workflows and show first valid option."
+      "behavior": "Allow continuation; suggestions screen will recompute skill/module defaults from workflow selection."
     },
     {
       "case": "low_confidence_no_alternatives",

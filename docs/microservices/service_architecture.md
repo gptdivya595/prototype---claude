@@ -251,7 +251,7 @@ Production later:
 - Audit logs
 - Persistent database
 
-## WebSocket Decision
+## WebSocket And Streaming Decision
 
 No WebSocket for MVP.
 
@@ -261,4 +261,4 @@ Use WebSocket later only for:
 - Presence
 - Bidirectional long-running tool control
 
-Use SSE for one-way answer streaming if needed.
+SSE is also not implemented in the current backend. Add it later only for one-way answer streaming; keep `/api/work-mode/work-plans/:id/generate` as the reliable HTTP fallback.

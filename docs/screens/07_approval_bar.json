@@ -9,7 +9,7 @@
       "message": "Approve this Work Plan before generating."
     },
     "approved": {
-      "primaryAction": "Generate answer",
+      "primaryAction": "Generate Answer",
       "secondaryAction": "Edit plan",
       "message": "Approved. The final answer will use this snapshot."
     },
@@ -30,15 +30,15 @@
       "target": "approve_button",
       "preconditions": [
         "status === 'draft'",
-        "approvalBlockingValidation.length === 0",
-        "autosave.state !== 'saving'"
+        "validationErrors.length === 0",
+        "autosaveStatus !== 'saving'"
       ],
       "action": "callApi",
       "api": "POST /api/work-mode/work-plans/:id/approve",
       "requestShape": {
         "version": "WorkPlanRecord.version"
       },
-      "analyticsEvent": "workplan_approved",
+      "analyticsEvent": "work_plan_approved",
       "nextState": "approved"
     },
     {
@@ -47,10 +47,13 @@
       "preconditions": [
         "status === 'approved'",
         "approvedPlan exists",
-        "generationInProgress === false"
+        "generationStatus !== 'generating'"
       ],
       "action": "callApi",
       "api": "POST /api/work-mode/work-plans/:id/generate",
+      "requestShape": {
+        "version": "approvedPlan.version"
+      },
       "analyticsEvent": "generation_started",
       "nextScreen": "generation_progress",
       "nextState": "generating"
@@ -64,13 +67,13 @@
         "showWhen": "status === 'generated'",
         "message": "Editing the Work Plan makes the current answer stale."
       },
-      "nextState": "editing_plan"
+      "nextState": "editing_work_plan"
     }
   ],
   "disabledReasons": [
     {
       "target": "approve_button",
-      "condition": "approvalBlockingValidation.length > 0",
+      "condition": "validationErrors.length > 0",
       "message": "Fix required Work Plan fields before approval."
     },
     {
@@ -80,7 +83,7 @@
     },
     {
       "target": "generate_button",
-      "condition": "autosave.state === 'saving'",
+      "condition": "autosaveStatus === 'saving'",
       "message": "Wait for the latest edits to save before generating."
     }
   ]

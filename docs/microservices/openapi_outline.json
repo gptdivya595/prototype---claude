@@ -3,31 +3,40 @@
   "info": {
     "title": "Work Mode API",
     "version": "0.1.0",
-    "description": "Prototype API outline for Work Mode."
+    "description": "Prototype API outline for the currently implemented Work Mode HTTP JSON backend."
   },
   "servers": [
     {
       "url": "http://127.0.0.1:8787/api/work-mode",
       "description": "Local development"
+    },
+    {
+      "url": "https://your-render-service.onrender.com/api/work-mode",
+      "description": "Render production backend"
     }
   ],
+  "transport": {
+    "current": "http_json",
+    "sseStreaming": false,
+    "webSocket": false
+  },
   "paths": {
     "/health": {
       "get": {
         "summary": "Health check",
         "responses": {
           "200": {
-            "description": "Service health"
+            "description": "Service health, feature flags, model config, route list, and transport flags"
           }
         }
       }
     },
     "/skills": {
       "get": {
-        "summary": "List Work Mode skills",
+        "summary": "List Work Mode skills, workflows, modules, roles, artifacts, and transport flags",
         "responses": {
           "200": {
-            "description": "Skill catalog"
+            "description": "Skill catalog and taxonomy"
           }
         }
       }
@@ -35,15 +44,21 @@
     "/analyze": {
       "post": {
         "summary": "Analyze prompt",
+        "requestBody": {
+          "description": "conversationId, mode=work, prompt"
+        },
         "responses": {
           "200": {
-            "description": "Prompt analysis"
+            "description": "Prompt analysis with detected role, artifact, workflow, skill, modules, confidence, alternatives, depth, risk, source mode, and LLM metadata"
           },
           "400": {
-            "description": "Invalid prompt"
+            "description": "validation_error, prompt_too_long, or unsupported_mode"
+          },
+          "401": {
+            "description": "demo_token_required when demo token is configured"
           },
           "429": {
-            "description": "Rate limited"
+            "description": "rate_limit_exceeded"
           }
         }
       }
@@ -52,14 +67,14 @@
       "post": {
         "summary": "Create Work Plan",
         "responses": {
-          "201": {
+          "200": {
             "description": "Draft WorkPlanRecord"
           },
-          "404": {
-            "description": "Analysis not found"
+          "400": {
+            "description": "Invalid override, unknown module, unknown workflow, or skill/workflow mismatch"
           },
-          "422": {
-            "description": "Invalid module/source/skill selection"
+          "404": {
+            "description": "analysis_not_found"
           }
         }
       }
@@ -82,7 +97,7 @@
             "description": "WorkPlanRecord"
           },
           "404": {
-            "description": "Work Plan not found"
+            "description": "work_plan_not_found"
           }
         }
       },
@@ -103,10 +118,10 @@
             "description": "Updated WorkPlanRecord"
           },
           "409": {
-            "description": "Stale Work Plan version"
+            "description": "stale_work_plan_version"
           },
           "422": {
-            "description": "Invalid Work Plan"
+            "description": "invalid_work_plan"
           }
         }
       }
@@ -129,10 +144,10 @@
             "description": "Approved WorkPlanRecord"
           },
           "409": {
-            "description": "Stale version or invalid status"
+            "description": "stale_work_plan_version or work_plan_not_draft"
           },
           "422": {
-            "description": "Approval validation failed"
+            "description": "invalid_work_plan"
           }
         }
       }
@@ -152,37 +167,28 @@
         ],
         "responses": {
           "200": {
-            "description": "Generated answer and validation"
+            "description": "Generated answer, validation result, and LLM metadata"
           },
           "409": {
-            "description": "Work Plan is not approved"
+            "description": "generate_before_approval or stale_work_plan_version"
           },
           "500": {
-            "description": "Generation failed"
+            "description": "Unhandled generation failure"
           }
         }
       }
-    },
+    }
+  },
+  "futureOnlyPaths": {
     "/work-plans/{id}/generate-stream": {
-      "post": {
-        "summary": "Generate final answer with SSE",
-        "description": "Optional MVP upgrade. Use Server-Sent Events, not WebSocket.",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "SSE event stream"
-          }
-        }
-      }
+      "status": "not_implemented",
+      "transport": "sse",
+      "description": "Potential future endpoint for one-way token streaming."
+    },
+    "/ws/work-mode": {
+      "status": "not_implemented",
+      "transport": "websocket",
+      "description": "Potential future endpoint for collaborative editing or bidirectional tool control."
     }
   }
 }

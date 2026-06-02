@@ -15,23 +15,25 @@
     {
       "id": "skills",
       "api": "GET /api/work-mode/skills",
-      "fallback": "localSkillFixture"
+      "returns": ["skills", "workflows", "modules", "roles", "artifacts", "sourceModes", "riskLevels", "roadmapDepthLevels", "plannedWorkflowIds", "transport"]
     },
     {
-      "id": "moduleCatalog",
-      "source": "shared_contracts.ModuleId + backend skill response"
+      "id": "analysis",
+      "source": "POST /api/work-mode/analyze response"
     }
   ],
   "fields": [
     {
       "id": "selectedSkillId",
       "type": "select_cards",
-      "required": true
+      "required": true,
+      "optionsRef": "SkillId"
     },
     {
       "id": "selectedModuleIds",
       "type": "checkbox_group",
-      "required": false
+      "required": false,
+      "optionsRef": "ModuleId"
     },
     {
       "id": "sourceMode",
@@ -40,6 +42,19 @@
       "disabledOptions": ["user_uploaded", "web_search"],
       "defaultFrom": "analysis.sourceMode"
     }
+  ],
+  "implementedSkills": [
+    "investor_deck_builder",
+    "prd_builder",
+    "bug_fix_planner",
+    "backend_api_builder",
+    "frontend_app_builder",
+    "architecture_reviewer",
+    "research_synthesizer",
+    "analytics_planner",
+    "complex_code_planner",
+    "career_path_coach",
+    "general_workflow_planner"
   ],
   "clickActions": [
     {
@@ -88,7 +103,7 @@
         "sourceMode": "sourceMode"
       },
       "nextScreen": "work_plan_editor",
-      "nextState": "creating_work_plan"
+      "nextState": "editing_work_plan"
     },
     {
       "id": "back_to_detection",
@@ -108,10 +123,16 @@
       "id": "web_search_disabled",
       "condition": "sourceMode === 'web_search' && webSearchEnabled === false",
       "message": "Live web search is not enabled. Use Source needed instead."
+    },
+    {
+      "id": "ambiguous_prompt_fallback",
+      "condition": "confidence < 0.65 || no specialized workflow wins",
+      "message": "Use general_workflow_planner and generic_workflow so the user can still edit a neutral roadmap."
     }
   ],
   "ownershipRules": {
     "recommendedModuleIds": "From analyze endpoint; used as default suggestions.",
-    "selectedModuleIds": "Owned by user after this screen; sent to create Work Plan."
+    "selectedModuleIds": "Owned by user after this screen; sent to create Work Plan.",
+    "workflowOverride": "Can be changed by role/artifact/skill overrides before Work Plan creation."
   }
 }

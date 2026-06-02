@@ -1,7 +1,18 @@
 {
   "version": "0.1.0",
   "basePath": "/api/work-mode",
-  "transport": "http",
+  "transport": {
+    "current": "http_json",
+    "sseStreaming": false,
+    "webSocket": false
+  },
+  "implementationSourceOfTruth": [
+    "backend/routes/workMode.ts",
+    "backend/schemas/workModeSchemas.ts",
+    "backend/types/workMode.ts",
+    "backend/templates/registries.ts",
+    "backend/templates/workflows.ts"
+  ],
   "apiEnvelope": {
     "success": {
       "ok": true,
@@ -24,102 +35,187 @@
       "method": "GET",
       "path": "/health",
       "auth": "none_or_demo_token",
-      "purpose": "Check service health and feature availability.",
+      "purpose": "Check service health, route availability, model flags, and transport capabilities.",
       "request": null,
       "response": {
         "status": "healthy",
-        "service": "work-mode-api",
-        "hasOpenAiKey": "boolean",
+        "namespace": "work-mode",
+        "implementedPhase": 12,
+        "availableRoutes": [
+          "/api/work-mode/health",
+          "/api/work-mode/skills",
+          "/api/work-mode/analyze",
+          "/api/work-mode/work-plans",
+          "/api/work-mode/work-plans/:id",
+          "PATCH /api/work-mode/work-plans/:id",
+          "POST /api/work-mode/work-plans/:id/approve",
+          "POST /api/work-mode/work-plans/:id/generate"
+        ],
+        "analysisCount": "number",
+        "workPlanCount": "number",
+        "generatedOutputCount": "number",
+        "openAiConfigured": "boolean",
+        "models": "safe model config without secrets",
+        "circuits": "OpenAI circuit breaker states",
         "features": {
           "llmClassifier": "boolean",
           "llmWorkPlan": "boolean",
           "llmAnswer": "boolean",
-          "sseStreaming": "boolean",
+          "sseStreaming": false,
           "webSocket": false,
-          "persistence": "memory"
+          "persistence": "memory",
+          "durablePersistence": false
+        },
+        "llmFlags": {
+          "classifier": "boolean",
+          "workPlan": "boolean",
+          "answer": "boolean"
         }
       },
-      "frontendUsage": "App shell backend status indicator."
+      "frontendUsage": "Backend status indicator and deployment smoke check."
     },
     {
       "id": "list_skills",
       "method": "GET",
       "path": "/skills",
       "auth": "none_or_demo_token",
-      "purpose": "Return available Work Mode skills and module options.",
+      "purpose": "Return available Work Mode skills, workflows, modules, roles, artifacts, and transport flags.",
       "request": null,
       "response": {
         "skills": [
           {
             "id": "investor_deck_builder",
-            "label": "Investor Deck Builder",
-            "description": "Creates an investor-facing slide deck roadmap.",
-            "workflowId": "slide_deck",
-            "supportedRoles": ["Founder", "Researcher", "Product Manager", "Executive"],
-            "supportedArtifacts": ["PPT"],
-            "defaultModuleIds": ["assumptions", "validation_checklist"],
-            "optionalModuleIds": ["competitor_analysis", "market_landscape", "investor_framing", "sources_required"]
+            "workflowId": "slide_deck"
           },
           {
             "id": "prd_builder",
-            "label": "PRD Builder",
-            "description": "Creates a structured product requirements roadmap.",
-            "workflowId": "prd_generation",
-            "supportedRoles": ["Product Manager", "Founder"],
-            "supportedArtifacts": ["PRD"],
-            "defaultModuleIds": ["assumptions", "user_personas", "metrics", "risk_analysis", "validation_checklist"],
-            "optionalModuleIds": ["competitor_analysis", "implementation_plan"]
+            "workflowId": "prd_generation"
           },
           {
             "id": "bug_fix_planner",
-            "label": "Bug Fix Planner",
-            "description": "Creates a debugging and verification roadmap.",
-            "workflowId": "debugging_bug_fix",
-            "supportedRoles": ["Developer"],
-            "supportedArtifacts": ["Code"],
-            "defaultModuleIds": ["root_cause_analysis", "test_cases", "validation_checklist", "risk_analysis"],
-            "optionalModuleIds": ["api_examples", "database_schema"]
+            "workflowId": "debugging_bug_fix"
+          },
+          {
+            "id": "backend_api_builder",
+            "workflowId": "backend_software"
+          },
+          {
+            "id": "frontend_app_builder",
+            "workflowId": "frontend_web"
+          },
+          {
+            "id": "architecture_reviewer",
+            "workflowId": "architecture_review"
+          },
+          {
+            "id": "research_synthesizer",
+            "workflowId": "research_report"
+          },
+          {
+            "id": "analytics_planner",
+            "workflowId": "analytics_plan"
+          },
+          {
+            "id": "complex_code_planner",
+            "workflowId": "complex_coding"
+          },
+          {
+            "id": "career_path_coach",
+            "workflowId": "career_path"
+          },
+          {
+            "id": "general_workflow_planner",
+            "workflowId": "generic_workflow"
           }
-        ]
+        ],
+        "workflows": ["WorkflowDefinition"],
+        "modules": ["ModuleDefinition"],
+        "roles": ["WorkRole"],
+        "artifacts": ["WorkArtifact"],
+        "sourceModes": ["none", "source_needed_only", "user_uploaded", "web_search"],
+        "riskLevels": ["low", "medium", "high", "restricted"],
+        "roadmapDepthLevels": ["L1", "L2", "L3", "L4"],
+        "plannedWorkflowIds": ["competitive_analysis", "brd_generation", "strategy_memo", "career_transition_plan"],
+        "transport": {
+          "mode": "http",
+          "webSocket": false,
+          "sseStreaming": false
+        }
       },
-      "frontendUsage": "Skill selector and suggestion checklist."
+      "frontendUsage": "Skill selector, module checklist, taxonomy source, and settings panel."
     },
     {
       "id": "analyze_prompt",
       "method": "POST",
       "path": "/analyze",
       "auth": "none_or_demo_token",
-      "purpose": "Detect role, artifact, skill, workflow, modules, confidence, and source mode.",
+      "purpose": "Detect role, artifact, workflow, skill, modules, confidence, roadmap depth, risk, and source mode.",
       "request": {
-        "conversationId": "string",
+        "conversationId": "string, default local",
         "mode": "work",
-        "prompt": "string"
+        "prompt": "string, required, max 8000 chars"
       },
       "response": {
         "analysisId": "string",
         "conversationId": "string",
+        "mode": "work",
         "detectedRole": "WorkRole",
         "detectedArtifact": "WorkArtifact",
         "taskCategory": "string",
+        "intentCategory": "string",
+        "confidence": "number 0..1",
+        "confidenceBand": "high | medium | low",
         "recommendedWorkflowId": "WorkflowId",
         "recommendedSkillId": "SkillId",
-        "confidence": "number",
-        "reason": "string",
         "recommendedModuleIds": ["ModuleId"],
+        "selectedModuleIds": ["ModuleId"],
         "sourceMode": "SourceMode",
-        "skillCandidates": [
+        "roadmapDepth": "RoadmapDepth",
+        "riskLevel": "RiskLevel",
+        "reason": "string",
+        "matchedSignals": ["string"],
+        "alternatives": [
           {
-            "skillId": "SkillId",
+            "value": "WorkflowId",
             "score": "number",
             "matchedSignals": ["string"]
           }
         ],
-        "questionsForUser": ["string"]
+        "questionsForUser": ["string"],
+        "candidates": {
+          "roles": ["Candidate<WorkRole>"],
+          "artifacts": ["Candidate<WorkArtifact>"],
+          "modules": ["Candidate<ModuleId>"],
+          "workflows": ["Candidate<WorkflowId>"]
+        },
+        "llm": {
+          "classifier": "LlmCallMetadata"
+        },
+        "createdAt": "ISODate"
       },
       "frontendUsage": "Detection summary screen.",
       "notes": [
-        "recommendedModuleIds are defaults only.",
-        "User-selected modules are sent later as selectedModuleIds."
+        "recommendedModuleIds are the detected recommendations.",
+        "selectedModuleIds are the modules that should be preselected for user editing.",
+        "If LLM classification is enabled and fails, the backend reconciles back to deterministic detection.",
+        "Ambiguous prompts fall back to generic_workflow and general_workflow_planner."
+      ],
+      "errorCases": [
+        {
+          "status": 400,
+          "code": "validation_error",
+          "meaning": "Prompt is blank or invalid."
+        },
+        {
+          "status": 400,
+          "code": "prompt_too_long",
+          "meaning": "Prompt exceeds 8000 characters."
+        },
+        {
+          "status": 400,
+          "code": "unsupported_mode",
+          "meaning": "Only mode=work is accepted."
+        }
       ]
     },
     {
@@ -135,7 +231,7 @@
         "workflowOverride": "WorkflowId | null",
         "skillOverride": "SkillId | null",
         "selectedModuleIds": ["ModuleId"],
-        "sourceMode": "SourceMode"
+        "sourceMode": "SourceMode | null"
       },
       "response": {
         "workPlanId": "string",
@@ -146,20 +242,47 @@
         "plan": "WorkPlan",
         "approvedPlan": null,
         "generatedOutputIds": [],
+        "llm": {
+          "workPlan": "LlmCallMetadata"
+        },
         "createdAt": "ISODate",
         "updatedAt": "ISODate"
       },
-      "frontendUsage": "Work Plan editor initial data."
+      "frontendUsage": "Work Plan editor initial data.",
+      "errorCases": [
+        {
+          "status": 404,
+          "code": "analysis_not_found",
+          "meaning": "analysisId was not found in memory store."
+        },
+        {
+          "status": 400,
+          "code": "unknown_workflow_id | unknown_module_id | validation_error",
+          "meaning": "Override or selected module is not in the registry."
+        },
+        {
+          "status": 400,
+          "code": "skill_workflow_mismatch",
+          "meaning": "Skill override does not belong to selected workflow."
+        }
+      ]
     },
     {
       "id": "get_work_plan",
       "method": "GET",
       "path": "/work-plans/:id",
       "auth": "none_or_demo_token",
-      "purpose": "Fetch latest WorkPlanRecord.",
+      "purpose": "Fetch latest WorkPlanRecord while the memory store still has it.",
       "request": null,
       "response": "WorkPlanRecord",
-      "frontendUsage": "Recover stale version, reload after refresh, or retry failed save."
+      "frontendUsage": "Available for stale-version recovery or refresh restore; current React client does not call it yet.",
+      "errorCases": [
+        {
+          "status": 404,
+          "code": "work_plan_not_found",
+          "meaning": "Record does not exist in current backend memory."
+        }
+      ]
     },
     {
       "id": "update_work_plan",
@@ -172,12 +295,17 @@
         "plan": "WorkPlan"
       },
       "response": "WorkPlanRecord",
-      "frontendUsage": "Autosave and manual save.",
+      "frontendUsage": "Autosave and retry save.",
       "errorCases": [
         {
           "status": 409,
-          "code": "STALE_WORK_PLAN_VERSION",
+          "code": "stale_work_plan_version",
           "meaning": "Client version is older than server version."
+        },
+        {
+          "status": 422,
+          "code": "invalid_work_plan",
+          "meaning": "Plan payload failed schema validation."
         }
       ]
     },
@@ -197,6 +325,18 @@
         "status is draft",
         "required sections are valid",
         "client version is current"
+      ],
+      "errorCases": [
+        {
+          "status": 409,
+          "code": "stale_work_plan_version | work_plan_not_draft",
+          "meaning": "Plan is stale or not approvable."
+        },
+        {
+          "status": 422,
+          "code": "invalid_work_plan",
+          "meaning": "Approval validation failed."
+        }
       ]
     },
     {
@@ -214,35 +354,44 @@
         "generatedFromVersion": "number",
         "answer": "string",
         "validation": "ValidationResult",
+        "llm": {
+          "answer": "LlmCallMetadata"
+        },
         "createdAt": "ISODate"
       },
       "frontendUsage": "Generation progress and answer screen.",
       "preconditions": [
-        "Work Plan status is approved",
-        "approvedPlan exists"
+        "Work Plan status is approved or generated",
+        "approvedPlan exists",
+        "optional version matches current record version"
+      ],
+      "cancellationBehavior": "If the client aborts before persistence, backend returns no output and does not mark the Work Plan generated.",
+      "errorCases": [
+        {
+          "status": 409,
+          "code": "generate_before_approval",
+          "meaning": "Work Plan has not been approved."
+        },
+        {
+          "status": 409,
+          "code": "stale_work_plan_version",
+          "meaning": "Provided version is stale."
+        }
       ]
-    },
+    }
+  ],
+  "notImplementedEndpoints": [
     {
       "id": "generate_answer_stream",
-      "method": "POST",
       "path": "/work-plans/:id/generate-stream",
-      "auth": "none_or_demo_token",
-      "transport": "sse",
-      "mvp": "optional",
-      "purpose": "Stream final answer deltas using Server-Sent Events.",
-      "request": {
-        "answerFormat": "markdown",
-        "stream": true
-      },
-      "events": [
-        "generation.started",
-        "generation.delta",
-        "generation.completed",
-        "generation.validation_started",
-        "generation.validation_completed",
-        "generation.error"
-      ],
-      "frontendUsage": "Generation progress with token streaming."
+      "status": "future_only",
+      "reason": "No backend SSE route or React streaming client exists in the current prototype."
+    },
+    {
+      "id": "work_mode_websocket",
+      "path": "/ws/work-mode",
+      "status": "future_only",
+      "reason": "No collaborative realtime editing or bidirectional tool control exists in the MVP."
     }
   ],
   "sharedTypes": {
@@ -260,6 +409,7 @@
       "assumptions": ["string"],
       "missingContext": ["string"],
       "sections": ["WorkPlanSection"],
+      "suggestions": ["WorkPlanSuggestion"],
       "validationCriteria": ["string"],
       "selectedModuleIds": ["ModuleId"]
     },
@@ -268,16 +418,25 @@
       "title": "string",
       "instructions": "string",
       "required": "boolean",
+      "moduleId": "ModuleId | optional",
       "sourceRefs": ["string"]
     },
     "ValidationResult": {
       "matchesApprovedPlan": "boolean",
       "missingSections": ["string"],
       "unsupportedClaims": ["string"],
-      "qualityScore": "number",
+      "qualityScore": "number 0..100",
       "recommendedFixes": ["string"],
       "sourceNeededClaims": ["string"],
       "passedChecks": ["string"]
+    },
+    "LlmCallMetadata": {
+      "attempted": "boolean",
+      "provider": "deterministic | local | openai | fallback",
+      "model": "string | optional",
+      "latencyMs": "number | optional",
+      "fallbackUsed": "boolean",
+      "fallbackReason": "string | optional"
     }
   }
 }

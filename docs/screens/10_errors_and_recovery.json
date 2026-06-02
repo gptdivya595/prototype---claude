@@ -5,49 +5,113 @@
   "state": "error",
   "errorTypes": [
     {
-      "code": "BACKEND_UNAVAILABLE",
-      "message": "The backend is unavailable.",
+      "code": "api_error",
+      "message": "The backend request failed.",
       "userActions": ["retry", "keep_editing_locally"],
-      "recovery": "Retry health check or continue with mock mode if enabled."
+      "recovery": "Retry the last safe request and preserve prompt or Work Plan state."
     },
     {
-      "code": "INVALID_PROMPT",
-      "message": "This prompt could not be analyzed.",
-      "userActions": ["edit_prompt"],
-      "recovery": "Return to prompt composer."
+      "code": "cors_origin_blocked",
+      "httpStatus": 403,
+      "message": "This frontend origin is not allowed by the backend.",
+      "userActions": ["check_backend_env"],
+      "recovery": "Set FRONTEND_ORIGIN and FRONTEND_ORIGINS on Render to the Vercel domain."
     },
     {
-      "code": "STALE_WORK_PLAN_VERSION",
+      "code": "demo_token_required",
+      "httpStatus": 401,
+      "message": "A valid demo token is required.",
+      "userActions": ["enter_demo_token"],
+      "recovery": "Send X-Demo-Token when DEMO_API_TOKEN is enabled."
+    },
+    {
+      "code": "validation_error",
+      "httpStatus": 400,
+      "message": "The request is invalid.",
+      "userActions": ["edit_prompt", "fix_selection"],
+      "recovery": "Return to the relevant form and correct the invalid field."
+    },
+    {
+      "code": "prompt_too_long",
+      "httpStatus": 400,
+      "message": "Prompt must be 8000 characters or fewer.",
+      "userActions": ["shorten_prompt"],
+      "recovery": "Ask user to shorten prompt or move extra material into future source upload flow."
+    },
+    {
+      "code": "unsupported_mode",
+      "httpStatus": 400,
+      "message": "Only Work Mode analysis is supported by the backend.",
+      "userActions": ["switch_to_work_mode"],
+      "recovery": "Submit analyze requests with mode=work."
+    },
+    {
+      "code": "analysis_not_found",
+      "httpStatus": 404,
+      "message": "The analysis record no longer exists.",
+      "userActions": ["rerun_analysis"],
+      "recovery": "Re-submit the prompt because memory store data may have reset."
+    },
+    {
+      "code": "work_plan_not_found",
+      "httpStatus": 404,
+      "message": "The Work Plan record no longer exists.",
+      "userActions": ["rerun_analysis", "create_new_work_plan"],
+      "recovery": "Create a new Work Plan because memory store data may have reset."
+    },
+    {
+      "code": "unknown_workflow_id | unknown_module_id | skill_workflow_mismatch",
+      "httpStatus": 400,
+      "message": "A selected workflow, module, or skill is not valid for the current registry.",
+      "userActions": ["reset_suggestions", "retry"],
+      "recovery": "Rebuild suggestions from GET /skills and POST /analyze."
+    },
+    {
+      "code": "stale_work_plan_version",
       "httpStatus": 409,
-      "message": "This Work Plan changed elsewhere.",
+      "message": "This Work Plan changed before the latest save or approval.",
       "userActions": ["reload_latest", "copy_local_edits"],
       "recovery": "Fetch latest WorkPlanRecord and ask user to reapply local changes."
     },
     {
-      "code": "GENERATE_BEFORE_APPROVAL",
+      "code": "invalid_work_plan",
+      "httpStatus": 422,
+      "message": "The Work Plan is not ready.",
+      "userActions": ["return_to_editor"],
+      "recovery": "Show validation errors and keep the editor open."
+    },
+    {
+      "code": "work_plan_not_draft",
+      "httpStatus": 409,
+      "message": "Only draft Work Plans can be approved.",
+      "userActions": ["refresh_status", "edit_plan"],
+      "recovery": "Return to editor and reset approval through an edit if needed."
+    },
+    {
+      "code": "generate_before_approval",
       "httpStatus": 409,
       "message": "Approve the Work Plan before generating.",
       "userActions": ["return_to_editor"],
       "recovery": "Navigate to Work Plan editor and show approval bar."
     },
     {
-      "code": "RATE_LIMITED",
+      "code": "rate_limit_exceeded",
       "httpStatus": 429,
       "message": "Too many requests. Wait and retry.",
       "userActions": ["retry_later"],
       "recovery": "Respect retry-after if provided."
     },
     {
-      "code": "OPENAI_UNAVAILABLE",
-      "message": "Model generation is unavailable.",
-      "userActions": ["retry", "use_template_fallback"],
-      "recovery": "Use deterministic or template fallback if feature is enabled."
+      "code": "generation_cancelled",
+      "message": "Generation was cancelled.",
+      "userActions": ["retry_generation", "edit_plan"],
+      "recovery": "Return to approved state and keep the approved Work Plan."
     },
     {
-      "code": "VALIDATION_FAILED",
-      "message": "The answer was generated, but validation could not complete.",
-      "userActions": ["show_answer_anyway", "retry_validation"],
-      "recovery": "Display answer with validation warning."
+      "code": "model_unavailable",
+      "message": "Model generation is unavailable.",
+      "userActions": ["retry", "use_template_fallback"],
+      "recovery": "Backend uses deterministic/template fallback when configured."
     }
   ],
   "clickActions": [
@@ -59,7 +123,9 @@
     {
       "id": "reload_latest_plan",
       "target": "reload_latest_button",
-      "action": "fetchWorkPlanRecord"
+      "action": "fetchWorkPlanRecord",
+      "api": "GET /api/work-mode/work-plans/:id",
+      "note": "Route exists; current React client needs a recovery UI to call it."
     },
     {
       "id": "keep_editing_locally",
@@ -86,6 +152,10 @@
     {
       "rule": "preserve_user_work",
       "behavior": "Do not clear prompt or Work Plan draft when recoverable errors occur."
+    },
+    {
+      "rule": "never_show_openai_key",
+      "behavior": "Do not display OPENAI_API_KEY or partial secrets in any error panel."
     }
   ]
 }

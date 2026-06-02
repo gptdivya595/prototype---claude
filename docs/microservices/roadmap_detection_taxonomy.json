@@ -1,29 +1,134 @@
 {
   "version": "0.1.0",
-  "purpose": "Canonical taxonomy for Work Mode system identification, roadmap depth, and supported roadmap types.",
+  "purpose": "Canonical taxonomy for Work Mode system identification, roadmap depth, fallback behavior, and supported roadmap types.",
   "identificationFields": [
     {
       "id": "detectedRole",
       "requiredForMvp": true,
-      "values": ["Product Manager", "Researcher", "Developer", "Founder", "Business Analyst", "Designer", "Marketer", "Executive", "Unknown"]
+      "values": [
+        "Product Manager",
+        "Researcher",
+        "Developer",
+        "Software Architect",
+        "Data Analyst",
+        "Founder",
+        "Business Analyst",
+        "Designer",
+        "Marketer",
+        "Executive",
+        "Career Coach",
+        "Unknown"
+      ]
     },
     {
       "id": "detectedArtifact",
       "requiredForMvp": true,
-      "values": ["Code", "PRD", "BRD", "PPT", "Research Report", "Strategy Memo", "Competitive Analysis", "Technical Design", "Data Analysis", "Unknown"]
+      "values": [
+        "Code",
+        "PRD",
+        "BRD",
+        "PPT",
+        "Research Report",
+        "Strategy Memo",
+        "Competitive Analysis",
+        "Technical Design",
+        "Architecture Review",
+        "Backend API",
+        "Frontend App",
+        "Data Analysis",
+        "Career Roadmap",
+        "Implementation Plan",
+        "General Roadmap",
+        "Unknown"
+      ]
+    },
+    {
+      "id": "taskCategory",
+      "requiredForMvp": true,
+      "values": [
+        "presentation",
+        "product",
+        "business",
+        "engineering",
+        "backend",
+        "frontend",
+        "technical_design",
+        "research",
+        "analysis",
+        "data",
+        "career",
+        "general"
+      ]
     },
     {
       "id": "intentCategory",
       "requiredForMvp": true,
-      "values": ["planning", "drafting", "debugging", "research", "analysis", "decision_support", "implementation"]
+      "values": [
+        "planning",
+        "drafting",
+        "debugging",
+        "research",
+        "analysis",
+        "decision_support",
+        "implementation",
+        "review",
+        "coaching"
+      ]
     },
     {
       "id": "recommendedWorkflowId",
-      "requiredForMvp": true
+      "requiredForMvp": true,
+      "values": [
+        "slide_deck",
+        "prd_generation",
+        "debugging_bug_fix",
+        "backend_software",
+        "frontend_web",
+        "architecture_review",
+        "research_report",
+        "analytics_plan",
+        "complex_coding",
+        "career_path",
+        "generic_workflow"
+      ]
     },
     {
       "id": "recommendedSkillId",
-      "requiredForMvp": true
+      "requiredForMvp": true,
+      "values": [
+        "investor_deck_builder",
+        "prd_builder",
+        "bug_fix_planner",
+        "backend_api_builder",
+        "frontend_app_builder",
+        "architecture_reviewer",
+        "research_synthesizer",
+        "analytics_planner",
+        "complex_code_planner",
+        "career_path_coach",
+        "general_workflow_planner"
+      ]
+    },
+    {
+      "id": "recommendedModuleIds",
+      "requiredForMvp": true,
+      "values": [
+        "assumptions",
+        "competitor_analysis",
+        "investor_framing",
+        "sources_required",
+        "root_cause_analysis",
+        "test_cases",
+        "metrics",
+        "user_personas",
+        "validation_checklist",
+        "risk_analysis",
+        "implementation_plan",
+        "market_landscape",
+        "api_examples",
+        "database_schema",
+        "tradeoff_analysis"
+      ]
     },
     {
       "id": "confidence",
@@ -31,24 +136,25 @@
       "range": [0, 1]
     },
     {
+      "id": "confidenceBand",
+      "requiredForMvp": true,
+      "values": ["high", "medium", "low"]
+    },
+    {
       "id": "sourceMode",
       "requiredForMvp": true,
-      "values": ["none", "source_needed_only", "user_uploaded", "web_search"]
+      "values": ["none", "source_needed_only", "user_uploaded", "web_search"],
+      "currentUiEnabledValues": ["none", "source_needed_only"]
     },
     {
       "id": "roadmapDepth",
-      "requiredForMvp": false,
+      "requiredForMvp": true,
       "values": ["L1", "L2", "L3", "L4"]
     },
     {
       "id": "riskLevel",
-      "requiredForMvp": false,
+      "requiredForMvp": true,
       "values": ["low", "medium", "high", "restricted"]
-    },
-    {
-      "id": "domain",
-      "requiredForMvp": false,
-      "values": ["product", "engineering", "research", "business", "marketing", "legal", "finance", "medical", "education"]
     },
     {
       "id": "audience",
@@ -59,11 +165,44 @@
       "requiredForMvp": false
     }
   ],
+  "detectionPipeline": [
+    {
+      "step": 1,
+      "name": "normalize_prompt",
+      "owner": "PromptNormalizer",
+      "output": ["trimmedText", "lowerText", "tokens", "phrases", "explicitArtifactHints", "audienceHints", "entityHints", "sourceHints", "riskHints"]
+    },
+    {
+      "step": 2,
+      "name": "score_registries",
+      "owner": "DeterministicDetector",
+      "output": ["role candidates", "artifact candidates", "module candidates", "sourceMode", "riskLevel", "roadmapDepth"]
+    },
+    {
+      "step": 3,
+      "name": "pick_workflow",
+      "owner": "WorkflowPicker",
+      "output": ["recommendedWorkflowId", "recommendedSkillId", "workflowCandidates", "alternatives"]
+    },
+    {
+      "step": 4,
+      "name": "optional_llm_classifier",
+      "owner": "LlmClassifier",
+      "condition": "USE_LLM_CLASSIFIER=true and OPENAI_API_KEY exists",
+      "output": "structured classification constrained to allowed registries"
+    },
+    {
+      "step": 5,
+      "name": "reconcile_and_fallback",
+      "owner": "LlmReconciler",
+      "output": "validated PromptAnalysis; deterministic fallback if LLM fails or returns invalid fields"
+    }
+  ],
   "confidenceBands": [
     {
       "id": "high",
       "min": 0.8,
-      "behavior": "Auto-select workflow, skill, modules, and source mode while allowing override."
+      "behavior": "Auto-select workflow, skill, modules, depth, risk, and source mode while allowing override."
     },
     {
       "id": "medium",
@@ -74,7 +213,7 @@
     {
       "id": "low",
       "maxExclusive": 0.65,
-      "behavior": "Show warning, questions, and alternatives before continuing."
+      "behavior": "Show warning, questions, alternatives, and keep generic_workflow available."
     }
   ],
   "roadmapDepthLevels": [
@@ -88,57 +227,133 @@
       "id": "L2",
       "label": "Standard Work Plan",
       "sectionCount": "6-10",
-      "useWhen": ["normal PRD", "normal deck", "normal bug fix"]
+      "useWhen": ["normal PRD", "normal deck", "normal bug fix", "career path"]
     },
     {
       "id": "L3",
       "label": "Deep Work Plan",
       "sectionCount": "10-16",
-      "useWhen": ["competitors", "investors", "technical feasibility", "source-heavy", "multi-stakeholder"]
+      "useWhen": ["competitors", "investors", "technical feasibility", "source-heavy", "multi-stakeholder", "backend/frontend build"]
     },
     {
       "id": "L4",
       "label": "Enterprise Roadmap",
       "sectionCount": "16-25",
-      "useWhen": ["high-stakes", "multi-team", "compliance", "security", "financial", "medical", "legal"]
+      "useWhen": ["high-stakes", "multi-team", "compliance", "security", "financial", "medical", "legal", "architecture review"]
     }
   ],
   "roadmapTypes": {
-    "mvp": [
-      {
-        "workflowId": "prd_generation",
-        "skillId": "prd_builder",
-        "label": "Product Requirements Roadmap",
-        "defaultDepth": "L2",
-        "primaryArtifacts": ["PRD", "BRD", "Technical Design"]
-      },
+    "implemented": [
       {
         "workflowId": "slide_deck",
         "skillId": "investor_deck_builder",
         "label": "Investor / Slide Deck Roadmap",
         "defaultDepth": "L3",
-        "primaryArtifacts": ["PPT", "Strategy Memo", "Competitive Analysis"]
+        "primaryArtifacts": ["PPT", "Strategy Memo", "Competitive Analysis", "Research Report"],
+        "primaryRoles": ["Founder", "Researcher", "Product Manager", "Executive"]
+      },
+      {
+        "workflowId": "prd_generation",
+        "skillId": "prd_builder",
+        "label": "Product Requirements Roadmap",
+        "defaultDepth": "L2",
+        "primaryArtifacts": ["PRD", "BRD", "Technical Design", "Strategy Memo"],
+        "primaryRoles": ["Product Manager", "Founder", "Business Analyst", "Designer"]
       },
       {
         "workflowId": "debugging_bug_fix",
         "skillId": "bug_fix_planner",
         "label": "Debugging / Bug Fix Roadmap",
         "defaultDepth": "L2",
-        "primaryArtifacts": ["Code", "Test Plan", "Technical Design"]
+        "primaryArtifacts": ["Code", "Technical Design"],
+        "primaryRoles": ["Developer"]
+      },
+      {
+        "workflowId": "backend_software",
+        "skillId": "backend_api_builder",
+        "label": "Backend Software Roadmap",
+        "defaultDepth": "L3",
+        "primaryArtifacts": ["Backend API", "Code", "Technical Design", "Implementation Plan"],
+        "primaryRoles": ["Developer", "Software Architect"]
+      },
+      {
+        "workflowId": "frontend_web",
+        "skillId": "frontend_app_builder",
+        "label": "Frontend Web Roadmap",
+        "defaultDepth": "L3",
+        "primaryArtifacts": ["Frontend App", "Code", "Technical Design", "Implementation Plan"],
+        "primaryRoles": ["Developer", "Designer", "Product Manager"]
+      },
+      {
+        "workflowId": "architecture_review",
+        "skillId": "architecture_reviewer",
+        "label": "Architecture Review Roadmap",
+        "defaultDepth": "L4",
+        "primaryArtifacts": ["Architecture Review", "Technical Design", "Strategy Memo"],
+        "primaryRoles": ["Software Architect", "Developer", "Executive"]
+      },
+      {
+        "workflowId": "research_report",
+        "skillId": "research_synthesizer",
+        "label": "Research Report Roadmap",
+        "defaultDepth": "L3",
+        "primaryArtifacts": ["Research Report", "Competitive Analysis", "Strategy Memo"],
+        "primaryRoles": ["Researcher", "Founder", "Executive", "Business Analyst"]
+      },
+      {
+        "workflowId": "analytics_plan",
+        "skillId": "analytics_planner",
+        "label": "Analytics Roadmap",
+        "defaultDepth": "L3",
+        "primaryArtifacts": ["Data Analysis", "Strategy Memo", "Research Report"],
+        "primaryRoles": ["Data Analyst", "Business Analyst", "Product Manager", "Executive"]
+      },
+      {
+        "workflowId": "complex_coding",
+        "skillId": "complex_code_planner",
+        "label": "Complex Coding Roadmap",
+        "defaultDepth": "L3",
+        "primaryArtifacts": ["Code", "Implementation Plan", "Technical Design"],
+        "primaryRoles": ["Developer", "Software Architect"]
+      },
+      {
+        "workflowId": "career_path",
+        "skillId": "career_path_coach",
+        "label": "Career Path Roadmap",
+        "defaultDepth": "L2",
+        "primaryArtifacts": ["Career Roadmap", "Strategy Memo"],
+        "primaryRoles": ["Career Coach", "Developer", "Designer", "Data Analyst", "Product Manager"]
+      },
+      {
+        "workflowId": "generic_workflow",
+        "skillId": "general_workflow_planner",
+        "label": "Generic Work Roadmap",
+        "defaultDepth": "L2",
+        "primaryArtifacts": ["General Roadmap", "Strategy Memo", "Research Report", "Technical Design", "Implementation Plan", "Unknown"],
+        "primaryRoles": [
+          "Product Manager",
+          "Researcher",
+          "Developer",
+          "Software Architect",
+          "Data Analyst",
+          "Founder",
+          "Business Analyst",
+          "Designer",
+          "Marketer",
+          "Executive",
+          "Career Coach",
+          "Unknown"
+        ],
+        "fallback": true
       }
     ],
-    "nearTerm": [
-      "technical_architecture",
+    "plannedWorkflowIds": [
       "competitive_analysis",
-      "research_report",
+      "brd_generation",
       "strategy_memo",
-      "data_analysis_plan",
-      "gtm_plan",
-      "ux_research_plan",
-      "test_plan",
-      "api_design"
+      "career_transition_plan"
     ],
-    "later": [
+    "laterIdeas": [
       "policy_review",
       "financial_analysis",
       "clinical_summary",
@@ -147,13 +362,28 @@
       "incident_postmortem"
     ]
   },
+  "fallbackRules": [
+    {
+      "case": "no candidate scores above zero",
+      "workflowId": "generic_workflow",
+      "skillId": "general_workflow_planner"
+    },
+    {
+      "case": "prompt is cross-functional or ambiguous",
+      "workflowId": "generic_workflow",
+      "skillId": "general_workflow_planner"
+    },
+    {
+      "case": "LLM returns unknown role/artifact/workflow/module",
+      "behavior": "Discard invalid LLM value and use deterministic allowed-registry value."
+    }
+  ],
   "productDecision": {
-    "implementedPolishedRoadmapTypes": 3,
-    "documentedNearTermRoadmapTypes": 9,
-    "documentedLaterRoadmapTypes": 6,
-    "totalPlannedRoadmapTypes": 18,
-    "mvpIdentificationFields": 7,
-    "plannedIdentificationFields": 12,
-    "roadmapDetailLevels": 4
+    "implementedRoadmapTypes": 11,
+    "plannedWorkflowIds": 4,
+    "laterIdeaCount": 6,
+    "mvpIdentificationFields": 11,
+    "roadmapDetailLevels": 4,
+    "fallbackWorkflow": "generic_workflow"
   }
 }

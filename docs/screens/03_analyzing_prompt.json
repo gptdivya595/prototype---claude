@@ -1,24 +1,25 @@
 {
   "id": "analyzing_prompt",
   "name": "Analyzing Prompt",
-  "purpose": "Show that the system is detecting role, artifact, workflow, skill, modules, and source mode.",
+  "purpose": "Show that the system is detecting role, artifact, workflow, skill, modules, source mode, depth, and risk.",
   "state": "analyzing",
   "visibleComponents": [
     "prompt_preview",
     "analysis_progress",
-    "cancel_analysis_button"
+    "backend_status_indicator"
   ],
   "progressMessages": [
     "Detecting role and artifact",
-    "Matching skills",
+    "Matching workflow and skill",
     "Selecting suggested modules",
-    "Checking source needs"
+    "Checking source needs",
+    "Estimating roadmap depth and risk"
   ],
   "apiCall": {
     "method": "POST",
     "path": "/api/work-mode/analyze",
     "timeoutMs": 20000,
-    "abortable": true,
+    "abortableInCurrentUi": false,
     "successNextScreen": "detection_summary",
     "failureNextScreen": "errors_and_recovery"
   },
@@ -26,46 +27,57 @@
     {
       "id": "cancel_analysis",
       "target": "cancel_analysis_button",
+      "mvpStatus": "planned_not_implemented",
       "action": "abortRequest",
       "nextScreen": "empty_prompt",
-      "nextState": "typing_prompt"
+      "nextState": "idle"
     }
   ],
   "successTransition": {
     "store": [
       "analysisId",
+      "conversationId",
       "detectedRole",
       "detectedArtifact",
+      "taskCategory",
+      "intentCategory",
       "recommendedWorkflowId",
       "recommendedSkillId",
       "recommendedModuleIds",
+      "selectedModuleIds",
       "sourceMode",
+      "roadmapDepth",
+      "riskLevel",
       "confidence",
-      "skillCandidates"
+      "confidenceBand",
+      "matchedSignals",
+      "alternatives",
+      "questionsForUser",
+      "candidates",
+      "llm"
     ],
     "nextState": "reviewing_detection"
   },
   "failureHandling": [
     {
-      "errorCode": "BACKEND_UNAVAILABLE",
-      "message": "The backend is unavailable. You can retry or use mock analysis if enabled.",
-      "actions": ["retry", "use_mock_analysis"]
+      "errorCode": "cors_origin_blocked | backend_unavailable",
+      "message": "The backend is unavailable or blocked by CORS.",
+      "actions": ["retry", "check_backend_url"]
     },
     {
-      "errorCode": "RATE_LIMITED",
+      "errorCode": "rate_limited",
       "message": "Too many requests. Wait a moment and retry.",
       "actions": ["retry_later"]
     },
     {
-      "errorCode": "INVALID_PROMPT",
+      "errorCode": "validation_error | prompt_too_long | unsupported_mode",
       "message": "The prompt could not be analyzed. Edit it and try again.",
       "actions": ["edit_prompt"]
     }
   ],
   "analytics": {
-    "onEnter": "analysis_started",
+    "onEnter": "prompt_submitted",
     "onSuccess": "analysis_completed",
-    "onCancel": "analysis_cancelled",
     "onFailure": "analysis_failed"
   }
 }

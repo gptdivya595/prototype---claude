@@ -2,7 +2,7 @@
   "id": "work_plan_editor",
   "name": "Work Plan Editor",
   "purpose": "Let user edit the roadmap before approval.",
-  "state": "editing_plan",
+  "state": "editing_work_plan",
   "recordType": "WorkPlanRecord",
   "editableObject": "WorkPlanRecord.plan",
   "visibleComponents": [
@@ -32,18 +32,20 @@
     "conversationId",
     "version",
     "approvedPlan",
-    "status"
+    "status",
+    "generatedOutputIds"
   ],
   "autosave": {
     "enabled": true,
-    "debounceMs": 1000,
+    "debounceMs": 550,
     "api": "PATCH /api/work-mode/work-plans/:id",
     "requestShape": {
       "version": "WorkPlanRecord.version",
       "plan": "WorkPlanRecord.plan"
     },
     "states": ["idle", "saving", "saved", "failed"],
-    "failureBehavior": "Keep local draft, show Save failed, allow retry."
+    "failureBehavior": "Keep local draft, show Save failed, allow retry.",
+    "staleVersionBehavior": "Backend returns 409; UI should preserve local edits and offer reload/reapply."
   },
   "clickActions": [
     {
@@ -62,6 +64,12 @@
       "id": "remove_assumption",
       "target": "remove_assumption_button",
       "action": "removeListItem",
+      "sideEffects": ["markDirty", "scheduleAutosave"]
+    },
+    {
+      "id": "add_missing_context",
+      "target": "add_missing_context_button",
+      "action": "appendListItem",
       "sideEffects": ["markDirty", "scheduleAutosave"]
     },
     {
@@ -104,7 +112,7 @@
     {
       "id": "retry_save",
       "target": "retry_save_button",
-      "preconditions": ["autosave.state === 'failed'"],
+      "preconditions": ["autosaveStatus === 'failed'"],
       "action": "callApi",
       "api": "PATCH /api/work-mode/work-plans/:id"
     }
@@ -129,6 +137,11 @@
       "rule": "required_section_instructions",
       "condition": "required section instructions are empty",
       "message": "Required sections need instructions."
+    },
+    {
+      "rule": "disabled_source_mode",
+      "condition": "plan.sourceMode is user_uploaded or web_search while those features are disabled",
+      "message": "Selected source mode is not enabled in the MVP."
     }
   ],
   "edgeCases": [
@@ -138,8 +151,12 @@
       "behavior": "Reload latest WorkPlanRecord and ask user to reapply local edits."
     },
     {
+      "case": "edit_after_approval",
+      "behavior": "Set status back to draft, clear approved snapshot in generation state, and show stale answer badge if an answer exists."
+    },
+    {
       "case": "browser_refresh_before_backend_persistence",
-      "behavior": "Draft may be lost; once backend autosave is enabled, restore from server record."
+      "behavior": "Memory store data may be lost on backend restart; use GET /work-plans/:id only while the same backend process is alive."
     },
     {
       "case": "very_large_roadmap",

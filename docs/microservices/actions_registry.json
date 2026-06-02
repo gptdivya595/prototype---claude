@@ -5,18 +5,19 @@
     {
       "id": "submitPrompt",
       "screen": "empty_prompt",
-      "trigger": "click submit or Enter; Shift+Enter inserts a newline",
-      "preconditions": ["mode === 'work'", "prompt is valid"],
+      "trigger": "click Send or press Enter; Shift+Enter inserts a newline",
+      "preconditions": ["mode === 'work'", "prompt.trim().length > 0"],
       "api": "POST /api/work-mode/analyze",
       "nextState": "analyzing",
-      "analyticsEvent": "workmode_prompt_submitted"
+      "analyticsEvent": "prompt_submitted"
     },
     {
       "id": "cancelAnalysis",
       "screen": "analyzing_prompt",
       "trigger": "click cancel",
-      "effect": "Abort analyze request",
-      "nextState": "typing_prompt"
+      "mvpStatus": "planned_not_implemented",
+      "effect": "Abort analyze request when AbortController is added",
+      "nextState": "idle"
     },
     {
       "id": "changeRoleOverride",
@@ -31,6 +32,12 @@
       "trigger": "select artifact",
       "effect": "Set artifactOverride and recompute compatible workflows",
       "analyticsEvent": "artifact_override_changed"
+    },
+    {
+      "id": "changeWorkflowOverride",
+      "screen": "detection_summary",
+      "trigger": "select workflow",
+      "effect": "Set workflowOverride and recompute skill/module defaults"
     },
     {
       "id": "changeSkill",
@@ -58,14 +65,14 @@
       "screen": "skill_and_suggestions",
       "trigger": "click Create Work Plan",
       "api": "POST /api/work-mode/work-plans",
-      "nextState": "editing_plan",
+      "nextState": "editing_work_plan",
       "analyticsEvent": "workplan_created"
     },
     {
       "id": "editWorkPlanField",
       "screen": "work_plan_editor",
       "trigger": "typing or section action",
-      "effect": "Update local WorkPlanRecord.plan, mark dirty, schedule autosave",
+      "effect": "Update local WorkPlanRecord.plan, mark dirty, schedule 550ms autosave",
       "api": "PATCH /api/work-mode/work-plans/:id",
       "analyticsEvent": "workplan_section_edited"
     },
@@ -75,12 +82,12 @@
       "trigger": "click Approve Work Plan",
       "api": "POST /api/work-mode/work-plans/:id/approve",
       "nextState": "approved",
-      "analyticsEvent": "workplan_approved"
+      "analyticsEvent": "work_plan_approved"
     },
     {
       "id": "generateAnswer",
       "screen": "approval_bar",
-      "trigger": "click Generate answer",
+      "trigger": "click Generate Answer",
       "api": "POST /api/work-mode/work-plans/:id/generate",
       "nextState": "generating",
       "analyticsEvent": "generation_started"
@@ -89,8 +96,9 @@
       "id": "cancelGeneration",
       "screen": "generation_progress",
       "trigger": "click Cancel",
-      "effect": "AbortController.abort() or close SSE connection",
-      "nextState": "generation_cancelled",
+      "effect": "AbortController.abort() on the active HTTP request",
+      "nextState": "approved",
+      "generationStatus": "cancelled",
       "analyticsEvent": "generation_cancelled"
     },
     {
@@ -117,42 +125,57 @@
       "id": "detectPromptDeterministically",
       "service": "DeterministicDetector",
       "input": "normalizedPrompt",
-      "output": "roleCandidates, artifactCandidates, moduleCandidates, sourceMode"
+      "output": "roleCandidates, artifactCandidates, moduleCandidates, sourceMode, riskLevel, roadmapDepth"
     },
     {
       "id": "classifyWithLlm",
-      "service": "OpenAIClassifier",
+      "service": "LlmClassifier",
       "optional": true,
       "input": "prompt, deterministicCandidates, allowed registries",
-      "output": "PromptAnalysis"
+      "output": "PromptAnalysis override candidates",
+      "fallback": "DeterministicDetector result"
+    },
+    {
+      "id": "reconcileClassification",
+      "service": "LlmReconciler",
+      "input": "deterministic result, optional LLM result, allowed registries",
+      "output": "validated PromptAnalysis"
     },
     {
       "id": "pickWorkflow",
       "service": "WorkflowPicker",
       "input": "PromptAnalysis candidates",
-      "output": "recommendedWorkflowId, recommendedSkillId"
+      "output": "recommendedWorkflowId, recommendedSkillId, alternatives"
     },
     {
       "id": "saveAnalysis",
-      "service": "WorkPlanStore",
+      "service": "MemoryStore",
       "input": "PromptAnalysis",
       "output": "analysisId"
     },
     {
       "id": "buildWorkPlan",
-      "service": "WorkPlanBuilder",
+      "service": "WorkPlanCreator + WorkPlanBuilder",
       "input": "analysis, selected modules, source mode, skill",
       "output": "WorkPlanRecord"
     },
     {
+      "id": "generateWorkPlanWithLlm",
+      "service": "LlmWorkPlanGenerator",
+      "optional": true,
+      "input": "analysis and workflow template",
+      "output": "WorkPlanRecord plan fields",
+      "fallback": "Template WorkPlanBuilder"
+    },
+    {
       "id": "autosaveWorkPlan",
-      "service": "WorkPlanStore",
+      "service": "WorkPlanLifecycle",
       "input": "version, WorkPlan",
       "output": "updated WorkPlanRecord"
     },
     {
       "id": "approveWorkPlan",
-      "service": "WorkPlanStore",
+      "service": "WorkPlanLifecycle",
       "input": "workPlanId, version",
       "output": "approved WorkPlanRecord"
     },
@@ -160,7 +183,8 @@
       "id": "generateAnswer",
       "service": "AnswerGenerator",
       "input": "approvedPlan",
-      "output": "answer markdown"
+      "output": "answer markdown",
+      "fallback": "Template answer when LLM answer is disabled or unavailable"
     },
     {
       "id": "validateAnswer",
@@ -173,22 +197,27 @@
     {
       "rule": "no_generation_without_approval",
       "enforcedBy": ["frontend", "backend"],
-      "behavior": "Generate button disabled on frontend; backend returns 409 if not approved."
+      "behavior": "Generate button disabled on frontend; backend returns 409 generate_before_approval if not approved."
     },
     {
       "rule": "edit_resets_approval",
       "enforcedBy": ["frontend", "backend"],
-      "behavior": "Any edit after approval returns plan to draft."
+      "behavior": "Any edit after approval returns plan to draft and stale-marks previous answer."
     },
     {
       "rule": "stale_version_rejected",
       "enforcedBy": ["backend"],
-      "behavior": "PATCH returns 409 when client version is stale."
+      "behavior": "PATCH/approve returns 409 stale_work_plan_version when client version is stale."
     },
     {
       "rule": "openai_key_backend_only",
       "enforcedBy": ["deployment", "backend"],
       "behavior": "Frontend has only VITE_WORK_MODE_API_BASE."
+    },
+    {
+      "rule": "generic_workflow_fallback",
+      "enforcedBy": ["backend"],
+      "behavior": "Ambiguous prompts receive generic_workflow and general_workflow_planner instead of forcing PRD."
     }
   ]
 }

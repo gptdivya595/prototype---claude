@@ -11,15 +11,15 @@
   ],
   "copy": {
     "emptyState": "Start with a prompt. Work Mode will create an editable plan before generating.",
-    "composerPlaceholder": "Describe the work you want to create, debug, research, or plan..."
+    "composerPlaceholder": "How can I help you today?"
   },
   "fields": [
     {
       "id": "prompt",
       "type": "textarea",
       "required": true,
-      "minLength": 2,
-      "maxLength": 12000,
+      "minLength": 1,
+      "maxLength": 8000,
       "autosize": true
     }
   ],
@@ -29,12 +29,12 @@
       "target": "submit_button",
       "preconditions": [
         "mode === 'work'",
-        "prompt.trim().length >= 2",
+        "prompt.trim().length > 0",
         "generationInProgress === false"
       ],
       "action": "callApi",
       "api": "POST /api/work-mode/analyze",
-      "analyticsEvent": "workmode_prompt_submitted",
+      "analyticsEvent": "prompt_submitted",
       "nextScreen": "analyzing_prompt",
       "nextState": "analyzing"
     },
@@ -48,12 +48,13 @@
   ],
   "keyboardActions": [
     {
-      "keys": ["Ctrl+Enter"],
+      "keys": ["Enter"],
+      "preconditions": ["prompt.trim().length > 0", "Shift is not pressed"],
       "action": "submit_work_prompt"
     },
     {
-      "keys": ["Meta+Enter"],
-      "action": "submit_work_prompt"
+      "keys": ["Shift+Enter"],
+      "action": "insertNewline"
     }
   ],
   "validation": [
@@ -65,7 +66,7 @@
     },
     {
       "rule": "too_long",
-      "condition": "prompt.length > 12000",
+      "condition": "prompt.length > 8000",
       "message": "This prompt is too long for the prototype. Shorten it or move details into sources later.",
       "blocksSubmit": true
     }
@@ -77,7 +78,11 @@
     },
     {
       "case": "backend_offline",
-      "behavior": "Allow mock/local analysis only if mock mode is enabled; otherwise show recoverable error."
+      "behavior": "Show recoverable error; do not expose OpenAI credentials in the browser."
+    },
+    {
+      "case": "non_work_mode",
+      "behavior": "Submit appends a normal chat message and sets state submitted instead of calling Work Mode APIs."
     }
   ]
 }

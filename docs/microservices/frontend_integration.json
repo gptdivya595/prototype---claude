@@ -4,21 +4,26 @@
   "frontendClient": {
     "name": "workModeClient",
     "baseUrlEnv": "VITE_WORK_MODE_API_BASE",
+    "currentMethodsInReact": [
+      "analyzePrompt",
+      "createWorkPlan",
+      "updateWorkPlan",
+      "approveWorkPlan",
+      "generateAnswer"
+    ],
+    "routeAvailableButNotCurrentlyCalledByReact": [
+      "GET /api/work-mode/health",
+      "GET /api/work-mode/skills",
+      "GET /api/work-mode/work-plans/:id"
+    ],
+    "notImplementedMethods": [
+      "generateAnswerStream",
+      "openWebSocket"
+    ],
     "headers": {
       "Content-Type": "application/json",
       "X-Demo-Token": "optional when DEMO_API_TOKEN is enabled"
-    },
-    "methods": [
-      "health",
-      "listSkills",
-      "analyzePrompt",
-      "createWorkPlan",
-      "getWorkPlan",
-      "updateWorkPlan",
-      "approveWorkPlan",
-      "generateAnswer",
-      "generateAnswerStream"
-    ]
+    }
   },
   "stateMapping": [
     {
@@ -27,25 +32,31 @@
       "availableActions": ["submitPrompt", "changeMode", "openSettings"]
     },
     {
+      "uiState": "submitted",
+      "screen": "conversation_message",
+      "availableActions": ["continueNormalChat", "switchToWorkMode"]
+    },
+    {
       "uiState": "analyzing",
       "screen": "analyzing_prompt",
       "apiInFlight": "POST /api/work-mode/analyze",
-      "availableActions": ["cancelAnalysis"]
+      "availableActions": ["waitForAnalysis"],
+      "note": "Abort is not implemented for analyze in the current React client."
     },
     {
       "uiState": "reviewing_detection",
       "screen": "detection_summary",
-      "requiredData": ["analysisId", "detectedRole", "detectedArtifact", "recommendedSkillId"],
-      "availableActions": ["changeRoleOverride", "changeArtifactOverride", "changeSkill", "continueToSuggestions"]
+      "requiredData": ["analysisId", "detectedRole", "detectedArtifact", "recommendedWorkflowId", "recommendedSkillId"],
+      "availableActions": ["changeRoleOverride", "changeArtifactOverride", "changeWorkflow", "changeSkill", "continueToSuggestions"]
     },
     {
       "uiState": "choosing_suggestions",
       "screen": "skill_and_suggestions",
-      "apiNeeded": "GET /api/work-mode/skills",
+      "requiredData": ["analysis", "selectedSkillId", "selectedModuleIds", "sourceMode"],
       "availableActions": ["changeSkill", "toggleModule", "changeSourceMode", "createWorkPlan"]
     },
     {
-      "uiState": "editing_plan",
+      "uiState": "editing_work_plan",
       "screen": "work_plan_editor",
       "requiredData": ["WorkPlanRecord"],
       "availableActions": ["editWorkPlanField", "addSection", "removeSection", "reorderSection", "approveWorkPlan"],
@@ -55,7 +66,7 @@
       "uiState": "approved",
       "screen": "approval_bar",
       "requiredData": ["WorkPlanRecord.approvedPlan"],
-      "availableActions": ["generateAnswer", "editWorkPlanField"]
+      "availableActions": ["generateAnswer", "editWorkPlanField", "retryCancelledGeneration"]
     },
     {
       "uiState": "generating",
@@ -81,27 +92,35 @@
     "api": "PATCH /api/work-mode/work-plans/:id",
     "request": {
       "version": "record.version",
-      "plan": "record.plan without UI-only id/status/version fields"
+      "plan": "record.plan without frontend-only id/status/version fields"
     },
-    "successBehavior": "Replace local WorkPlanRecord with server response.",
-    "staleVersionBehavior": "Show stale version error, fetch latest record, ask user to reapply edits.",
-    "networkFailureBehavior": "Keep local draft and show Save failed."
+    "successBehavior": "Replace local WorkPlanRecord with server response and set autosaveStatus=saved.",
+    "staleVersionBehavior": "Show stale version error, preserve local draft, and use GET /work-plans/:id when recovery UI is added.",
+    "networkFailureBehavior": "Keep local draft and set autosaveStatus=failed."
   },
   "abortBehavior": {
     "analyze": "Not implemented in the current UI; can be added with AbortController later.",
-    "generate": "AbortController cancels the HTTP request. SSE is still deferred.",
+    "generate": "AbortController cancels the HTTP request. Main WorkModeUiState returns to approved and generationStatus becomes cancelled.",
     "backendRequirement": "Current route checks for client disconnect before persisting generated output."
   },
   "websocketDecision": {
     "useWebSocketInMvp": false,
     "reason": "No realtime collaborative editing or bidirectional tool control is needed.",
-    "useInstead": ["HTTP", "Optional SSE for generation streaming"]
+    "useInstead": ["HTTP JSON request/response", "AbortController for generation cancellation"],
+    "futureUpgrade": "Add SSE before WebSocket if the only requirement is one-way answer streaming."
   },
   "frontendErrors": {
-    "BACKEND_UNAVAILABLE": "Show retry and keep local editing available.",
-    "STALE_WORK_PLAN_VERSION": "Reload latest plan and preserve local edits where possible.",
-    "GENERATE_BEFORE_APPROVAL": "Return to approval bar.",
-    "RATE_LIMITED": "Show wait and retry later.",
-    "OPENAI_UNAVAILABLE": "Show fallback or retry."
+    "cors_origin_blocked": "Show backend/CORS setup hint and keep local state.",
+    "validation_error": "Show editable prompt or selection error.",
+    "prompt_too_long": "Ask user to shorten prompt below 8000 characters.",
+    "analysis_not_found": "Ask user to re-run prompt analysis.",
+    "unknown_module_id": "Remove invalid module selection and retry.",
+    "skill_workflow_mismatch": "Recompute skill from selected workflow.",
+    "stale_work_plan_version": "Preserve local edits and recover latest server record.",
+    "invalid_work_plan": "Show approval-blocking validation errors.",
+    "work_plan_not_draft": "Refresh current plan status before approving.",
+    "generate_before_approval": "Return to approval bar.",
+    "rate_limit_exceeded": "Show wait and retry later.",
+    "generation_cancelled": "Return to approved state with retry available."
   }
 }

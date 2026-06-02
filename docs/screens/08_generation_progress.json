@@ -4,45 +4,41 @@
   "purpose": "Show final answer generation progress, cancellation, and retry.",
   "state": "generating",
   "transport": {
-    "mvp": "http",
-    "optional": "sse",
-    "websocket": "deferred_until_realtime_collaboration"
+    "current": "http_json",
+    "sseImplemented": false,
+    "webSocketImplemented": false,
+    "futureUpgrade": "SSE can be added later for one-way answer token streaming."
   },
   "visibleComponents": [
     "approved_plan_snapshot_summary",
-    "generation_spinner_or_stream",
+    "generation_spinner",
     "cancel_generation_button",
-    "partial_answer_preview",
     "status_message"
   ],
   "apiCall": {
     "method": "POST",
     "path": "/api/work-mode/work-plans/:id/generate",
     "abortable": true,
-    "timeoutMs": 90000
+    "timeoutMs": 90000,
+    "requestShape": {
+      "version": "approvedPlan.version"
+    }
   },
-  "sseEventsIfEnabled": [
-    "generation.started",
-    "generation.delta",
-    "generation.completed",
-    "generation.validation_started",
-    "generation.validation_completed",
-    "generation.error"
-  ],
   "clickActions": [
     {
       "id": "cancel_generation",
       "target": "cancel_generation_button",
-      "action": "abortGeneration",
+      "action": "AbortController.abort",
       "analyticsEvent": "generation_cancelled",
-      "nextState": "generation_cancelled"
+      "nextState": "approved",
+      "generationStatus": "cancelled"
     },
     {
       "id": "retry_generation",
       "target": "retry_generation_button",
       "preconditions": [
-        "status === 'approved'",
-        "lastGenerationFailed === true"
+        "approvedPlan exists",
+        "lastGenerationFailed === true || generationStatus === 'cancelled'"
       ],
       "action": "callApi",
       "api": "POST /api/work-mode/work-plans/:id/generate",
@@ -60,24 +56,31 @@
     "store": [
       "answerId",
       "answer",
-      "validation"
+      "validation",
+      "llm",
+      "createdAt"
     ],
     "nextScreen": "answer_and_validation",
     "nextState": "complete",
+    "generationStatus": "complete",
     "analyticsEvent": "generation_completed"
   },
   "failureHandling": [
     {
       "case": "cancelled_by_user",
-      "behavior": "Return to approved state. Do not mark Work Plan generated."
+      "behavior": "Return main WorkModeUiState to approved. Do not mark Work Plan generated."
     },
     {
       "case": "openai_timeout",
-      "behavior": "Show retry. If partial answer exists, mark incomplete."
+      "behavior": "Show retry. Backend may return deterministic fallback when LLM answer is unavailable."
     },
     {
       "case": "validation_failed_after_answer",
       "behavior": "Show answer with validation warning instead of blank screen."
+    },
+    {
+      "case": "client_disconnect_before_persist",
+      "behavior": "Backend checks request abort before saving generated output."
     }
   ]
 }

@@ -13,7 +13,8 @@
     {
       "id": "backendStatus",
       "label": "Backend status",
-      "values": ["online", "offline", "unknown"]
+      "values": ["online", "offline", "unknown"],
+      "source": "GET /api/work-mode/health"
     },
     {
       "id": "sourceModes",
@@ -28,7 +29,16 @@
     {
       "id": "generationTransport",
       "label": "Generation transport",
-      "values": ["http", "sse_optional", "websocket_deferred"]
+      "values": {
+        "current": "http_json",
+        "sseStreaming": false,
+        "webSocket": false
+      }
+    },
+    {
+      "id": "llmFlags",
+      "label": "LLM feature flags",
+      "values": ["llmClassifier", "llmWorkPlan", "llmAnswer"]
     },
     {
       "id": "openAiKeyVisibility",
@@ -57,6 +67,10 @@
     {
       "id": "openai_key_not_visible",
       "behavior": "Never display OPENAI_API_KEY or partial key in UI."
+    },
+    {
+      "id": "frontend_never_calls_openai",
+      "behavior": "Only VITE_WORK_MODE_API_BASE is exposed to Vercel frontend."
     },
     {
       "id": "demo_token",

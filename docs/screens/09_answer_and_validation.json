@@ -15,7 +15,7 @@
   ],
   "answerHeader": {
     "statusText": "Generated from approved Work Plan",
-    "showStaleBadgeWhen": "draftPlanVersion > approvedPlanVersion"
+    "showStaleBadgeWhen": "answer.isStale === true"
   },
   "validationPanel": {
     "fields": [
@@ -23,21 +23,23 @@
       "missingSections",
       "unsupportedClaims",
       "qualityScore",
-      "recommendedFixes"
+      "recommendedFixes",
+      "sourceNeededClaims",
+      "passedChecks"
     ],
     "qualityScoreLabels": [
       {
-        "range": ">= 8",
+        "range": ">= 80",
         "label": "Strong",
         "style": "success"
       },
       {
-        "range": ">= 6 && < 8",
+        "range": ">= 60 && < 80",
         "label": "Needs review",
         "style": "warning"
       },
       {
-        "range": "< 6",
+        "range": "< 60",
         "label": "Revise",
         "style": "danger"
       }
@@ -55,19 +57,20 @@
       "target": "edit_plan_button",
       "action": "navigate",
       "nextScreen": "work_plan_editor",
-      "nextState": "editing_plan",
+      "nextState": "editing_work_plan",
       "sideEffects": ["markAnswerStaleIfPlanChanges"]
     },
     {
       "id": "regenerate",
       "target": "regenerate_button",
       "preconditions": [
-        "status === 'generated'",
-        "approvedPlan exists"
+        "approvedPlan exists",
+        "generationStatus !== 'generating'"
       ],
       "action": "callApi",
       "api": "POST /api/work-mode/work-plans/:id/generate",
-      "nextScreen": "generation_progress"
+      "nextScreen": "generation_progress",
+      "nextState": "generating"
     },
     {
       "id": "export_answer_markdown",
