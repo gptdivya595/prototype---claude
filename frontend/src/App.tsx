@@ -2334,14 +2334,6 @@ function PromptComposer({
             >
               <Plus size={20} aria-hidden="true" />
             </button>
-            <div className="flex items-center gap-2 text-xs text-[#6d6a63]">
-              <span>
-                Session: <span className="font-semibold text-[#e45d3d]">0%</span>
-              </span>
-              <span className="h-1.5 w-32 rounded-full bg-[#eeeae2]">
-                <span className="block h-full w-[2%] rounded-full bg-[#e45d3d]" />
-              </span>
-            </div>
           </div>
 
           <div className="flex w-full flex-col items-start gap-4 sm:w-auto sm:items-end">
@@ -2388,11 +2380,6 @@ function PromptComposer({
               >
                 <Send size={16} aria-hidden="true" />
               </button>
-            </div>
-
-            <div className="flex flex-wrap justify-start gap-x-4 gap-y-1 text-xs text-[#6d6a63] sm:justify-end">
-              <span>Reset in: Not set</span>
-              <span>Messages left: N/A</span>
             </div>
           </div>
         </div>
