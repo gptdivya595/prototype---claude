@@ -31,9 +31,9 @@ services:
       - key: USE_LLM_ANSWER
         value: "true"
       - key: FRONTEND_ORIGIN
-        value: https://your-vercel-app.vercel.app
+        value: https://prototype-claude.vercel.app
       - key: FRONTEND_ORIGINS
-        value: https://your-vercel-app.vercel.app
+        value: https://prototype-claude.vercel.app
       - key: OPENAI_TIMEOUT_MS
         value: "12000"
       - key: OPENAI_MAX_RETRIES
