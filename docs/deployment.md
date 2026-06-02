@@ -115,6 +115,8 @@ Keep Render's root directory as the repository root. The backend source lives in
 
 The root-level `render.yaml` is the source of truth for the service blueprint. If using the Render dashboard, create or sync a Blueprint from this repo. If using the Render CLI, run it from the repository root after `render --version` works locally.
 
+For the free tier, do not add `maxShutdownDelaySeconds` to `render.yaml`; Render rejects that field for free web services.
+
 Add these Render environment variables:
 
 ```env

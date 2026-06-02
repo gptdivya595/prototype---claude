@@ -102,6 +102,10 @@ Render env:
 OPENAI_API_KEY=your_backend_only_key
 DEFAULT_MODEL=gpt-4o-mini
 OPENAI_MODEL=gpt-4o-mini
+OPENAI_CLASSIFIER_MODEL=gpt-4o-mini
+OPENAI_WORK_PLAN_MODEL=gpt-4o-mini
+OPENAI_ANSWER_MODEL=gpt-4o-mini
+OPENAI_VALIDATION_MODEL=gpt-4o-mini
 USE_LLM_CLASSIFIER=true
 USE_LLM_WORK_PLAN=true
 USE_LLM_ANSWER=true
@@ -110,6 +114,8 @@ FRONTEND_ORIGINS=https://your-vercel-app.vercel.app,https://your-vercel-preview.
 OPENAI_TIMEOUT_MS=12000
 OPENAI_MAX_RETRIES=1
 ```
+
+Do not set `maxShutdownDelaySeconds` on Render free tier services; the free tier rejects that Blueprint field.
 
 Optional:
 

@@ -3,6 +3,7 @@ import {
   Archive,
   Boxes,
   BriefcaseBusiness,
+  CalendarDays,
   CheckCircle2,
   ChevronDown,
   ChevronRight,
@@ -11,6 +12,7 @@ import {
   GraduationCap,
   Inbox,
   LoaderCircle,
+  Mail,
   MessageCircle,
   Mic,
   PanelLeft,
@@ -1477,6 +1479,11 @@ function mapBackendRecord(record: BackendWorkPlanRecord): WorkPlanRecord {
 }
 
 function stripWorkPlanForApi(plan: WorkPlan): BackendWorkPlan {
+  const cleanList = (items: string[], fallback: string) => {
+    const cleaned = items.map((item) => item.trim()).filter(Boolean);
+    return cleaned.length > 0 ? cleaned : [fallback];
+  };
+
   return {
     prompt: plan.prompt,
     role: plan.role,
@@ -1488,8 +1495,8 @@ function stripWorkPlanForApi(plan: WorkPlan): BackendWorkPlan {
     sourceMode: plan.sourceMode,
     roadmapDepth: plan.roadmapDepth,
     riskLevel: plan.riskLevel,
-    assumptions: plan.assumptions.filter((item) => item.trim()),
-    missingContext: plan.missingContext.filter((item) => item.trim()),
+    assumptions: cleanList(plan.assumptions, "No explicit assumptions added yet."),
+    missingContext: cleanList(plan.missingContext, "No missing context added yet."),
     sections: plan.sections.map((section) => ({
       id: section.id,
       title: section.title,
@@ -1498,7 +1505,7 @@ function stripWorkPlanForApi(plan: WorkPlan): BackendWorkPlan {
       moduleId: section.moduleId,
       sourceRefs: section.sourceRefs ?? [],
     })),
-    validationCriteria: plan.validationCriteria.filter((item) => item.trim()),
+    validationCriteria: cleanList(plan.validationCriteria, "Final answer follows the approved Work Plan."),
     selectedModuleIds: plan.selectedModuleIds,
   };
 }
@@ -1925,7 +1932,33 @@ function App() {
 
   return (
     <div className="min-h-screen bg-[#faf9f5] text-[#1f1f1d]">
-      <IconRail />
+      <IconRail
+        mode={mode}
+        onModeChange={setMode}
+        onNewChat={() => {
+          generationAbortRef.current?.abort();
+          generationAbortRef.current = null;
+          setPrompt("");
+          setMessages([]);
+          setWorkModeDraft({ prompt: "", analysis: null });
+          setSuggestionState(null);
+          setWorkPlanEditorState({
+            record: null,
+            isDirty: false,
+            autosaveStatus: "idle",
+            validationErrors: [],
+            validationWarnings: [],
+          });
+          setGenerationState({
+            status: "idle",
+            approvedWorkPlan: null,
+            answer: null,
+            validation: null,
+          });
+          setWorkModeError(null);
+          setWorkModeUiState("idle");
+        }}
+      />
 
       <main className="min-h-screen pl-11">
         <TopChrome />
@@ -1974,31 +2007,62 @@ function App() {
   );
 }
 
-function IconRail() {
+function IconRail({
+  mode,
+  onModeChange,
+  onNewChat,
+}: {
+  mode: Mode;
+  onModeChange: (mode: Mode) => void;
+  onNewChat: () => void;
+}) {
   return (
     <aside
       className="fixed inset-y-0 left-0 z-30 flex w-11 flex-col items-center border-r border-[#dedbd2] bg-[#faf9f5]"
       aria-label="Primary navigation"
     >
-      <button type="button" className="mt-2 grid h-8 w-8 place-items-center rounded-md text-[#3d3d39] hover:bg-[#efeee9]" aria-label="Toggle sidebar">
+      <button
+        type="button"
+        className="mt-2 grid h-8 w-8 cursor-not-allowed place-items-center rounded-md text-[#b7b3aa]"
+        aria-label="Toggle sidebar unavailable in prototype"
+        disabled
+        title="Sidebar expansion is not available in this prototype."
+      >
         <PanelLeft size={17} aria-hidden="true" />
       </button>
 
       <nav className="mt-11 flex flex-1 flex-col items-center gap-4" aria-label="Claude-style shortcuts">
-        <RailButton icon={<Plus size={18} />} label="New chat" active />
-        <RailButton icon={<MessageCircle size={18} />} label="Chats" />
-        <RailButton icon={<Archive size={18} />} label="Archive" />
-        <RailButton icon={<Boxes size={18} />} label="Projects" />
-        <RailButton icon={<Code2 size={18} />} label="Code" muted />
-        <RailButton icon={<BriefcaseBusiness size={18} />} label="Work mode" />
+        <RailButton icon={<Plus size={18} />} label="New chat" active onClick={onNewChat} />
+        <RailButton icon={<MessageCircle size={18} />} label="Chats unavailable in prototype" disabled />
+        <RailButton icon={<Archive size={18} />} label="Archive unavailable in prototype" disabled />
+        <RailButton icon={<Boxes size={18} />} label="Projects unavailable in prototype" disabled />
+        <RailButton icon={<Code2 size={18} />} label="Code unavailable in prototype" disabled muted />
+        <RailButton
+          icon={<BriefcaseBusiness size={18} />}
+          label="Switch to Work mode"
+          active={mode === "work"}
+          onClick={() => onModeChange("work")}
+        />
       </nav>
 
       <div className="mb-3 flex flex-col items-center gap-4">
-        <button type="button" className="relative grid h-8 w-8 place-items-center rounded-md text-[#1f1f1d] hover:bg-[#efeee9]" aria-label="Inbox">
+        <button
+          type="button"
+          className="relative grid h-8 w-8 cursor-not-allowed place-items-center rounded-md text-[#b7b3aa]"
+          aria-label="Inbox unavailable in prototype"
+          disabled
+          title="Inbox is not available in this prototype."
+        >
           <Inbox size={18} aria-hidden="true" />
-          <span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-[#1b8bdc]" />
+          <span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-[#e45d3d]" />
         </button>
-        <button type="button" className="grid h-10 w-10 place-items-center rounded-full bg-[#333331] text-sm font-semibold text-white" aria-label="Divya profile">
+        <button
+          type="button"
+          className="grid h-10 w-10 place-items-center rounded-full bg-[#333331] text-sm font-semibold text-white active:translate-y-px"
+          aria-label="Reset prototype session"
+          onClick={onNewChat}
+          title="Reset this prototype session"
+        >
           D
         </button>
       </div>
@@ -2008,23 +2072,31 @@ function IconRail() {
 
 function RailButton({
   active,
+  disabled,
   icon,
   label,
   muted,
+  onClick,
 }: {
   active?: boolean;
+  disabled?: boolean;
   icon: ReactNode;
   label: string;
   muted?: boolean;
+  onClick?: () => void;
 }) {
   return (
     <button
       type="button"
       className={[
-        "grid h-8 w-8 place-items-center rounded-md hover:bg-[#efeee9]",
+        "grid h-8 w-8 place-items-center rounded-md",
         active ? "bg-[#e9e8e2] text-[#1f1f1d]" : muted ? "text-[#b7b3aa]" : "text-[#2f2f2b]",
+        disabled ? "cursor-not-allowed opacity-55" : "hover:bg-[#efeee9] active:translate-y-px",
       ].join(" ")}
       aria-label={label}
+      disabled={disabled}
+      onClick={onClick}
+      title={disabled ? "Unavailable in this prototype." : label}
     >
       {icon}
     </button>
@@ -2036,14 +2108,21 @@ function TopChrome() {
     <header className="pointer-events-none fixed left-11 right-0 top-0 z-20 flex h-12 items-center justify-center bg-[#faf9f5]/90 backdrop-blur">
       <div className="pointer-events-auto rounded-lg bg-[#f1f0eb] px-3 py-2 text-sm text-[#756f66]">
         Free plan <span className="mx-1 text-[#aaa59b]">·</span>
-        <button type="button" className="inline-flex min-h-8 items-center underline underline-offset-2 hover:text-[#2f2f2b]">
+        <button
+          type="button"
+          className="inline-flex min-h-8 cursor-not-allowed items-center underline underline-offset-2 opacity-55"
+          disabled
+          title="Upgrade is not available in this prototype."
+        >
           Upgrade
         </button>
       </div>
       <button
         type="button"
-        className="pointer-events-auto absolute right-4 grid h-8 w-8 place-items-center rounded-md text-[#2f2f2b] hover:bg-[#efeee9]"
-        aria-label="Assistant menu"
+        className="pointer-events-auto absolute right-4 grid h-8 w-8 cursor-not-allowed place-items-center rounded-md text-[#b7b3aa]"
+        aria-label="Assistant menu unavailable in prototype"
+        disabled
+        title="Assistant menu is not available in this prototype."
       >
         <CircleUserRound size={18} aria-hidden="true" />
       </button>
@@ -2248,14 +2327,16 @@ function PromptComposer({
           <div className="flex flex-col gap-4">
             <button
               type="button"
-              className="grid h-9 w-9 shrink-0 place-items-center rounded-md text-[#0f172a] hover:bg-[#f3f2ed] sm:h-8 sm:w-8"
-              aria-label="Attach context"
+              className="grid h-9 w-9 shrink-0 cursor-not-allowed place-items-center rounded-md text-[#b7b3aa] sm:h-8 sm:w-8"
+              aria-label="Attach context unavailable in prototype"
+              disabled
+              title="File/context upload is not available in this prototype."
             >
               <Plus size={20} aria-hidden="true" />
             </button>
             <div className="flex items-center gap-2 text-xs text-[#6d6a63]">
               <span>
-                Session: <span className="font-semibold text-[#0b73d9]">0%</span>
+                Session: <span className="font-semibold text-[#e45d3d]">0%</span>
               </span>
               <span className="h-1.5 w-32 rounded-full bg-[#eeeae2]">
                 <span className="block h-full w-[2%] rounded-full bg-[#e45d3d]" />
@@ -2268,13 +2349,14 @@ function PromptComposer({
               <div className="relative max-w-full">
                 <button
                   type="button"
-                  className="inline-flex max-w-full items-center rounded-lg bg-[#f5f3ee] px-3 py-2 text-sm font-medium text-[#2c2924] hover:bg-[#eeece5]"
+                  className="inline-flex max-w-full items-center gap-1.5 rounded-lg bg-[#f5f3ee] px-3 py-2 text-sm font-medium text-[#2c2924] hover:bg-[#eeece5] active:translate-y-px"
                   aria-expanded={modelMenuOpen}
                   aria-haspopup="menu"
                   onClick={() => setModelMenuOpen((current) => !current)}
                 >
-                  Sonnet 4.6 <span className="text-[#777168]">{modeLabel}</span>
-                  <ChevronDown className="ml-1 inline" size={14} aria-hidden="true" />
+                  <span>Sonnet 4.6</span>
+                  <span className="text-[#777168]">{modeLabel}</span>
+                  <ChevronDown size={14} aria-hidden="true" />
                 </button>
                 {modelMenuOpen ? (
                   <ModelMenu mode={mode} onModeChange={onModeChange} onClose={() => setModelMenuOpen(false)} />
@@ -2282,15 +2364,19 @@ function PromptComposer({
               </div>
               <button
                 type="button"
-                className="grid h-9 w-9 shrink-0 place-items-center rounded-md text-[#1f1f1d] hover:bg-[#f3f2ed] sm:h-8 sm:w-8"
-                aria-label="Voice input"
+                className="grid h-9 w-9 shrink-0 cursor-not-allowed place-items-center rounded-md text-[#b7b3aa] sm:h-8 sm:w-8"
+                aria-label="Voice input unavailable in prototype"
+                disabled
+                title="Voice input is not available in this prototype."
               >
                 <Mic size={18} aria-hidden="true" />
               </button>
               <button
                 type="button"
-                className="grid h-9 w-9 shrink-0 place-items-center rounded-md text-[#1f1f1d] hover:bg-[#f3f2ed] sm:h-8 sm:w-8"
-                aria-label="Audio controls"
+                className="grid h-9 w-9 shrink-0 cursor-not-allowed place-items-center rounded-md text-[#b7b3aa] sm:h-8 sm:w-8"
+                aria-label="Audio controls unavailable in prototype"
+                disabled
+                title="Audio controls are not available in this prototype."
               >
                 <Volume2 size={18} aria-hidden="true" />
               </button>
@@ -2361,7 +2447,7 @@ function ModelMenu({
                   <span className="font-medium">{item.label}</span>
                   <span className="ml-2 text-xs text-[#817b72]">{item.helper}</span>
                 </span>
-                {mode === item.id ? <CheckCircle2 size={16} className="text-[#0b73d9]" aria-hidden="true" /> : null}
+                {mode === item.id ? <CheckCircle2 size={16} className="text-[#e45d3d]" aria-hidden="true" /> : null}
               </button>
             ))}
           </div>
@@ -2370,8 +2456,10 @@ function ModelMenu({
 
       <button
         type="button"
-        className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left hover:bg-[#f2f1ed]"
+        className="flex w-full cursor-not-allowed items-center justify-between rounded-lg px-3 py-2 text-left text-[#817b72] opacity-70"
         role="menuitem"
+        disabled
+        title="Additional model browsing is not available in this prototype."
       >
         More models
         <ChevronRight size={16} aria-hidden="true" />
@@ -2402,11 +2490,16 @@ function MenuRow({
         <p className="truncate text-[#817b72]">{subtitle}</p>
       </div>
       {action ? (
-        <button type="button" className="inline-flex min-h-8 items-center rounded-full border border-[#d7d3c8] px-2 py-1 text-xs text-[#0b65b9]">
+        <button
+          type="button"
+          className="inline-flex min-h-8 cursor-not-allowed items-center rounded-full border border-[#d7d3c8] px-2 py-1 text-xs text-[#817b72] opacity-70"
+          disabled
+          title="Upgrade is not available in this prototype."
+        >
           {action}
         </button>
       ) : null}
-      {selected ? <CheckCircle2 size={16} className="text-[#0b73d9]" aria-hidden="true" /> : null}
+      {selected ? <CheckCircle2 size={16} className="text-[#e45d3d]" aria-hidden="true" /> : null}
     </div>
   );
 }
@@ -2416,8 +2509,8 @@ function QuickActions({ onPromptChange }: { onPromptChange: (prompt: string) => 
     { label: "Write", icon: <PenLine size={17} />, prompt: "Write a structured brief for " },
     { label: "Learn", icon: <GraduationCap size={17} />, prompt: "Teach me the essentials of " },
     { label: "Code", icon: <Code2 size={17} />, prompt: "Help me debug this code: " },
-    { label: "From Calendar", icon: <span className="text-xs">📅</span>, prompt: "Turn my meeting notes into a plan: " },
-    { label: "From Gmail", icon: <span className="text-xs">M</span>, prompt: "Draft a reply to this email: " },
+    { label: "From Calendar", icon: <CalendarDays size={17} />, prompt: "Turn my meeting notes into a plan: " },
+    { label: "From Gmail", icon: <Mail size={17} />, prompt: "Draft a reply to this email: " },
   ];
 
   return (
