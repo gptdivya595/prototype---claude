@@ -1960,10 +1960,10 @@ function App() {
         }}
       />
 
-      <main className="min-h-screen pl-11">
+      <main className="min-h-screen pl-10">
         <TopChrome />
 
-        <section className="mx-auto flex min-h-screen w-full max-w-5xl flex-col px-4 pb-8 pt-24 sm:px-6">
+        <section className="mx-auto flex min-h-screen w-full max-w-5xl flex-col px-4 pb-7 pt-20 sm:px-5">
           {isHome ? (
             <HomeSurface
               mode={mode}
@@ -2018,12 +2018,12 @@ function IconRail({
 }) {
   return (
     <aside
-      className="fixed inset-y-0 left-0 z-30 flex w-11 flex-col items-center border-r border-[#dedbd2] bg-[#faf9f5]"
+      className="fixed inset-y-0 left-0 z-30 flex w-10 flex-col items-center border-r border-[#dedbd2] bg-[#faf9f5]"
       aria-label="Primary navigation"
     >
       <button
         type="button"
-        className="mt-2 grid h-8 w-8 cursor-not-allowed place-items-center rounded-md text-[#b7b3aa]"
+        className="mt-2 grid h-7 w-7 cursor-not-allowed place-items-center rounded-md text-[#b7b3aa]"
         aria-label="Toggle sidebar unavailable in prototype"
         disabled
         title="Sidebar expansion is not available in this prototype."
@@ -2031,7 +2031,7 @@ function IconRail({
         <PanelLeft size={17} aria-hidden="true" />
       </button>
 
-      <nav className="mt-11 flex flex-1 flex-col items-center gap-4" aria-label="Claude-style shortcuts">
+      <nav className="mt-10 flex flex-1 flex-col items-center gap-3.5" aria-label="Claude-style shortcuts">
         <RailButton icon={<Plus size={18} />} label="New chat" active onClick={onNewChat} />
         <RailButton icon={<MessageCircle size={18} />} label="Chats unavailable in prototype" disabled />
         <RailButton icon={<Archive size={18} />} label="Archive unavailable in prototype" disabled />
@@ -2045,10 +2045,10 @@ function IconRail({
         />
       </nav>
 
-      <div className="mb-3 flex flex-col items-center gap-4">
+      <div className="mb-3 flex flex-col items-center gap-3.5">
         <button
           type="button"
-          className="relative grid h-8 w-8 cursor-not-allowed place-items-center rounded-md text-[#b7b3aa]"
+          className="relative grid h-7 w-7 cursor-not-allowed place-items-center rounded-md text-[#b7b3aa]"
           aria-label="Inbox unavailable in prototype"
           disabled
           title="Inbox is not available in this prototype."
@@ -2058,7 +2058,7 @@ function IconRail({
         </button>
         <button
           type="button"
-          className="grid h-10 w-10 place-items-center rounded-full bg-[#333331] text-sm font-semibold text-white active:translate-y-px"
+          className="grid h-9 w-9 place-items-center rounded-full bg-[#333331] text-[13px] font-semibold text-white active:translate-y-px"
           aria-label="Reset prototype session"
           onClick={onNewChat}
           title="Reset this prototype session"
@@ -2089,7 +2089,7 @@ function RailButton({
     <button
       type="button"
       className={[
-        "grid h-8 w-8 place-items-center rounded-md",
+        "grid h-7 w-7 place-items-center rounded-md",
         active ? "bg-[#e9e8e2] text-[#1f1f1d]" : muted ? "text-[#b7b3aa]" : "text-[#2f2f2b]",
         disabled ? "cursor-not-allowed opacity-55" : "hover:bg-[#efeee9] active:translate-y-px",
       ].join(" ")}
@@ -2105,12 +2105,12 @@ function RailButton({
 
 function TopChrome() {
   return (
-    <header className="pointer-events-none fixed left-11 right-0 top-0 z-20 flex h-12 items-center justify-center bg-[#faf9f5]/90 backdrop-blur">
-      <div className="pointer-events-auto rounded-lg bg-[#f1f0eb] px-3 py-2 text-sm text-[#756f66]">
+    <header className="pointer-events-none fixed left-10 right-0 top-0 z-20 flex h-11 items-center justify-center bg-[#faf9f5]/90 backdrop-blur">
+      <div className="pointer-events-auto rounded-lg bg-[#f1f0eb] px-2.5 py-1.5 text-xs text-[#756f66]">
         Free plan <span className="mx-1 text-[#aaa59b]">·</span>
         <button
           type="button"
-          className="inline-flex min-h-8 cursor-not-allowed items-center underline underline-offset-2 opacity-55"
+          className="inline-flex min-h-7 cursor-not-allowed items-center underline underline-offset-2 opacity-55"
           disabled
           title="Upgrade is not available in this prototype."
         >
@@ -2119,7 +2119,7 @@ function TopChrome() {
       </div>
       <button
         type="button"
-        className="pointer-events-auto absolute right-4 grid h-8 w-8 cursor-not-allowed place-items-center rounded-md text-[#b7b3aa]"
+        className="pointer-events-auto absolute right-4 grid h-7 w-7 cursor-not-allowed place-items-center rounded-md text-[#b7b3aa]"
         aria-label="Assistant menu unavailable in prototype"
         disabled
         title="Assistant menu is not available in this prototype."
@@ -2146,15 +2146,15 @@ function HomeSurface({
   selectedModeLabel: string;
 }) {
   return (
-    <div className="flex flex-1 flex-col items-center justify-center pb-20">
-      <div className="mb-10 flex items-center gap-4">
+    <div className="flex flex-1 flex-col items-center justify-center pb-16">
+      <div className="mb-8 flex items-center gap-3">
         <ClaudeMark />
-        <h1 className="font-serif text-4xl font-normal tracking-normal text-[#282521] sm:text-5xl">
+        <h1 className="font-serif text-[34px] font-normal leading-tight tracking-normal text-[#282521] sm:text-[44px]">
           Good afternoon, Divya
         </h1>
       </div>
 
-      <div className="w-full max-w-[736px]">
+      <div className="w-full max-w-[664px]">
         <PromptComposer
           mode={mode}
           modeLabel={selectedModeLabel}
@@ -2221,7 +2221,7 @@ function WorkSurface({
   workModeUiState: WorkModeUiState;
 }) {
   return (
-    <div className="mx-auto flex w-full max-w-[780px] flex-1 flex-col gap-4">
+    <div className="mx-auto flex w-full max-w-[720px] flex-1 flex-col gap-4">
       <div className="flex flex-col gap-4">
         {messages.map((message) => (
           <MessageBubble key={message.id} message={message} />
@@ -2267,11 +2267,11 @@ function ClaudeMark() {
   const rays = Array.from({ length: 12 }, (_, index) => index * 30);
 
   return (
-    <span className="relative h-9 w-9 shrink-0" aria-hidden="true">
+    <span className="relative h-8 w-8 shrink-0" aria-hidden="true">
       {rays.map((rotation) => (
         <span
           key={rotation}
-          className="absolute left-1/2 top-1/2 h-1 w-8 origin-center -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#e45d3d]"
+          className="absolute left-1/2 top-1/2 h-[3px] w-7 origin-center -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#e45d3d]"
           style={{ transform: `translate(-50%, -50%) rotate(${rotation}deg) scaleX(.74)` }}
         />
       ))}
@@ -2304,7 +2304,7 @@ function PromptComposer({
       <label htmlFor={compact ? "prompt-compact" : "prompt"} className="sr-only">
         Message prompt
       </label>
-      <div className="rounded-[22px] border border-[#ddd9d0] bg-white shadow-[0_12px_34px_rgba(44,39,32,0.08)]">
+      <div className="rounded-[20px] border border-[#ddd9d0] bg-white shadow-[0_10px_30px_rgba(44,39,32,0.075)]">
         <textarea
           id={compact ? "prompt-compact" : "prompt"}
           value={prompt}
@@ -2317,31 +2317,31 @@ function PromptComposer({
           }}
           rows={compact ? 2 : 3}
           className={[
-            "w-full resize-none rounded-t-[22px] bg-transparent px-6 text-[16px] leading-7 text-[#272521] placeholder:text-[#6d6a63] focus:outline-none",
-            compact ? "min-h-20 pt-4" : "min-h-24 pt-5",
+            "w-full resize-none rounded-t-[20px] bg-transparent px-5 text-[15px] leading-6 text-[#272521] placeholder:text-[#6d6a63] focus:outline-none",
+            compact ? "min-h-[72px] pt-3.5" : "min-h-[86px] pt-4",
           ].join(" ")}
           placeholder="How can I help you today?"
         />
 
-        <div className="flex flex-col gap-3 px-5 pb-4 sm:flex-row sm:items-end sm:justify-between">
-          <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-2 px-4 pb-3.5 sm:flex-row sm:items-end sm:justify-between">
+          <div className="flex flex-col gap-3">
             <button
               type="button"
-              className="grid h-9 w-9 shrink-0 cursor-not-allowed place-items-center rounded-md text-[#b7b3aa] sm:h-8 sm:w-8"
+              className="grid h-8 w-8 shrink-0 cursor-not-allowed place-items-center rounded-md text-[#b7b3aa]"
               aria-label="Attach context unavailable in prototype"
               disabled
               title="File/context upload is not available in this prototype."
             >
-              <Plus size={20} aria-hidden="true" />
+              <Plus size={18} aria-hidden="true" />
             </button>
           </div>
 
-          <div className="flex w-full flex-col items-start gap-4 sm:w-auto sm:items-end">
-            <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:gap-4">
+          <div className="flex w-full flex-col items-start gap-3 sm:w-auto sm:items-end">
+            <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:gap-3">
               <div className="relative max-w-full">
                 <button
                   type="button"
-                  className="inline-flex max-w-full items-center gap-1.5 rounded-lg bg-[#f5f3ee] px-3 py-2 text-sm font-medium text-[#2c2924] hover:bg-[#eeece5] active:translate-y-px"
+                  className="inline-flex max-w-full items-center gap-1.5 rounded-lg bg-[#f5f3ee] px-2.5 py-1.5 text-[13px] font-medium text-[#2c2924] hover:bg-[#eeece5] active:translate-y-px"
                   aria-expanded={modelMenuOpen}
                   aria-haspopup="menu"
                   onClick={() => setModelMenuOpen((current) => !current)}
@@ -2356,29 +2356,29 @@ function PromptComposer({
               </div>
               <button
                 type="button"
-                className="grid h-9 w-9 shrink-0 cursor-not-allowed place-items-center rounded-md text-[#b7b3aa] sm:h-8 sm:w-8"
+                className="grid h-8 w-8 shrink-0 cursor-not-allowed place-items-center rounded-md text-[#b7b3aa]"
                 aria-label="Voice input unavailable in prototype"
                 disabled
                 title="Voice input is not available in this prototype."
               >
-                <Mic size={18} aria-hidden="true" />
+                <Mic size={16} aria-hidden="true" />
               </button>
               <button
                 type="button"
-                className="grid h-9 w-9 shrink-0 cursor-not-allowed place-items-center rounded-md text-[#b7b3aa] sm:h-8 sm:w-8"
+                className="grid h-8 w-8 shrink-0 cursor-not-allowed place-items-center rounded-md text-[#b7b3aa]"
                 aria-label="Audio controls unavailable in prototype"
                 disabled
                 title="Audio controls are not available in this prototype."
               >
-                <Volume2 size={18} aria-hidden="true" />
+                <Volume2 size={16} aria-hidden="true" />
               </button>
               <button
                 type="submit"
                 disabled={!canSubmit}
-                className="grid h-9 w-9 shrink-0 place-items-center rounded-md bg-[#2f2f2b] text-white hover:bg-[#1f1f1d] disabled:cursor-not-allowed disabled:bg-transparent disabled:text-transparent sm:h-8 sm:w-8"
+                className="grid h-8 w-8 shrink-0 place-items-center rounded-md bg-[#2f2f2b] text-white hover:bg-[#1f1f1d] disabled:cursor-not-allowed disabled:bg-transparent disabled:text-transparent"
                 aria-label="Send prompt"
               >
-                <Send size={16} aria-hidden="true" />
+                <Send size={15} aria-hidden="true" />
               </button>
             </div>
           </div>
@@ -2501,12 +2501,12 @@ function QuickActions({ onPromptChange }: { onPromptChange: (prompt: string) => 
   ];
 
   return (
-    <div className="mt-4 flex flex-wrap justify-center gap-2">
+    <div className="mt-3 flex flex-wrap justify-center gap-1.5">
       {actions.map((action) => (
         <button
           key={action.label}
           type="button"
-          className="inline-flex items-center gap-2 rounded-lg border border-[#ddd9d0] bg-white px-3 py-2 text-sm font-medium shadow-[0_2px_8px_rgba(44,39,32,0.05)] hover:bg-[#f7f5f0]"
+          className="inline-flex items-center gap-1.5 rounded-lg border border-[#ddd9d0] bg-white px-2.5 py-1.5 text-[13px] font-medium shadow-[0_2px_8px_rgba(44,39,32,0.05)] hover:bg-[#f7f5f0]"
           onClick={() => onPromptChange(action.prompt)}
         >
           <span className="text-[#817b72]" aria-hidden="true">
