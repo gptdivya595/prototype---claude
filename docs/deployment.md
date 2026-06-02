@@ -172,16 +172,20 @@ After Render is live:
 ```bash
 $env:WORK_MODE_API_BASE="https://your-render-service.onrender.com/api/work-mode"
 $env:WORK_MODE_ROOT_HEALTH="https://your-render-service.onrender.com/health"
+$env:SMOKE_TIMEOUT_MS="90000"
 npm run smoke:server
 ```
 
 If running in bash:
 
 ```bash
+SMOKE_TIMEOUT_MS=90000 \
 WORK_MODE_API_BASE=https://your-render-service.onrender.com/api/work-mode \
 WORK_MODE_ROOT_HEALTH=https://your-render-service.onrender.com/health \
 npm run smoke:server
 ```
+
+The longer timeout is recommended for hosted Render free-tier checks because cold starts plus live LLM calls can exceed the local default.
 
 Expected result:
 
