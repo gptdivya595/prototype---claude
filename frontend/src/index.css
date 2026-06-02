@@ -24,10 +24,17 @@
   --wm-focus: #315f54;
   color: var(--wm-text);
   background: var(--wm-bg);
+  font-size: 90%;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+@media (max-width: 640px) {
+  :root {
+    font-size: 92.5%;
+  }
 }
 
 body {

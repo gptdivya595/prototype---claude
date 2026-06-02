@@ -16,6 +16,14 @@ services:
         value: gpt-4o-mini
       - key: OPENAI_MODEL
         value: gpt-4o-mini
+      - key: OPENAI_CLASSIFIER_MODEL
+        value: gpt-4o-mini
+      - key: OPENAI_WORK_PLAN_MODEL
+        value: gpt-4o-mini
+      - key: OPENAI_ANSWER_MODEL
+        value: gpt-4o-mini
+      - key: OPENAI_VALIDATION_MODEL
+        value: gpt-4o-mini
       - key: USE_LLM_CLASSIFIER
         value: "true"
       - key: USE_LLM_WORK_PLAN

@@ -19,6 +19,27 @@ npm run deploy:check
 
 `deploy:check` runs backend fixtures, backend typecheck, and frontend production build.
 
+## CLI Readiness
+
+Run these from the repository root after installing and logging in to the CLIs:
+
+```powershell
+vercel.cmd --version
+vercel.cmd whoami
+render --version
+```
+
+On Windows PowerShell, prefer `vercel.cmd` because `vercel.ps1` can be blocked by the default execution policy. If `render --version` is not found, fix the Render CLI PATH/install before using CLI deploy commands, or deploy from the Render dashboard using the root-level `render.yaml` blueprint.
+
+Keep both CLI projects pointed at the repository root:
+
+```text
+Vercel project root: ./
+Render service root: ./
+```
+
+Do not point either service directly at `frontend/` or `backend/`; the root config files already route builds into the correct folders.
+
 ## Local Full-Flow Smoke Test
 
 Terminal 1:
@@ -57,6 +78,13 @@ Output Directory: dist
 
 Keep Vercel's root directory as the repository root. The frontend source lives in `frontend/`, but `vite.config.ts` sets `root: "frontend"` and writes the production build to root-level `dist/`, which matches `vercel.json`.
 
+CLI deploy:
+
+```powershell
+vercel.cmd pull
+vercel.cmd deploy --prod
+```
+
 Add this Vercel environment variable:
 
 ```env
@@ -84,6 +112,8 @@ Health Check Path: /health
 ```
 
 Keep Render's root directory as the repository root. The backend source lives in `backend/`, and `package.json` points `start:server` to `tsx backend/index.ts`.
+
+The root-level `render.yaml` is the source of truth for the service blueprint. If using the Render dashboard, create or sync a Blueprint from this repo. If using the Render CLI, run it from the repository root after `render --version` works locally.
 
 Add these Render environment variables:
 

@@ -14,7 +14,7 @@ Vite React frontend
 
 Do not split into multiple deployable services yet. Keep the code modular so it can split later.
 
-## Suggested Backend Folder
+## Backend Folder
 
 ```text
 backend/
@@ -22,31 +22,53 @@ backend/
   env.ts
   openaiClient.ts
   routes/
-    workMode.routes.ts
+    health.ts
+    workMode.ts
   middleware/
     requestId.ts
     errorHandler.ts
     demoToken.ts
-    rateLimit.ts
+    rateLimitPlaceholder.ts
   schemas/
     workModeSchemas.ts
+  types/
+    workMode.ts
   templates/
     registries.ts
     skillCatalog.ts
     moduleCatalog.ts
+    skills.ts
     workflows.ts
   services/
     promptNormalizer.ts
     deterministicDetector.ts
-    llmClassifier.ts
     workflowPicker.ts
     workPlanBuilder.ts
+    workPlanCreator.ts
+    workPlanLifecycle.ts
     answerGenerator.ts
     answerValidator.ts
-    analyticsLogger.ts
-  storage/
+    openai/
+      circuitBreaker.ts
+      llmClassifier.ts
+      llmErrors.ts
+      llmReconciler.ts
+      llmSchemas.ts
+      llmWorkPlanGenerator.ts
+      modelRouter.ts
+      structuredResponse.ts
+  store/
     memoryStore.ts
-    jsonStore.ts
+  tests/
+    detectorFixtures.ts
+    lifecycleFixtures.ts
+    llmFallbackFixtures.ts
+    llmSchemaFixtures.ts
+    registryConsistency.ts
+    workPlanFixtures.ts
+  utils/
+    apiResponse.ts
+    errors.ts
 ```
 
 ## Service Responsibilities

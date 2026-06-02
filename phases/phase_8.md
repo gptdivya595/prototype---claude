@@ -62,7 +62,7 @@ backend/services/
   workflowPicker.ts
 
 backend/routes/
-  workMode.routes.ts
+  workMode.ts
 ```
 
 ## Analyze Request

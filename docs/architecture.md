@@ -874,24 +874,40 @@ backend/
   env.ts
   openaiClient.ts
   routes/
-    workMode.routes.ts
+    health.ts
+    workMode.ts
+  middleware/
+    requestId.ts
+    errorHandler.ts
+    demoToken.ts
+    rateLimitPlaceholder.ts
   services/
     promptNormalizer.ts
     deterministicDetector.ts
-    llmClassifier.ts
     workflowPicker.ts
-    workPlanGenerator.ts
+    workPlanBuilder.ts
+    workPlanCreator.ts
+    workPlanLifecycle.ts
     answerGenerator.ts
     answerValidator.ts
+    openai/
+      llmClassifier.ts
+      llmReconciler.ts
+      llmWorkPlanGenerator.ts
+      modelRouter.ts
+      structuredResponse.ts
   templates/
     registries.ts
+    skillCatalog.ts
+    skills.ts
     workflows.ts
     moduleCatalog.ts
-  storage/
+  store/
     memoryStore.ts
-    jsonStore.ts
   schemas/
     workModeSchemas.ts
+  types/
+    workMode.ts
 ```
 
 Prototype scripts:
