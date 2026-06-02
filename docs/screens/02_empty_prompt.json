@@ -1,0 +1,83 @@
+{
+  "id": "empty_prompt",
+  "name": "Work Mode Prompt Entry",
+  "purpose": "Let user enter the initial task prompt for Work Mode.",
+  "state": "idle",
+  "visibleComponents": [
+    "mode_selector",
+    "empty_state_copy",
+    "prompt_composer",
+    "submit_button"
+  ],
+  "copy": {
+    "emptyState": "Start with a prompt. Work Mode will create an editable plan before generating.",
+    "composerPlaceholder": "Describe the work you want to create, debug, research, or plan..."
+  },
+  "fields": [
+    {
+      "id": "prompt",
+      "type": "textarea",
+      "required": true,
+      "minLength": 2,
+      "maxLength": 12000,
+      "autosize": true
+    }
+  ],
+  "clickActions": [
+    {
+      "id": "submit_work_prompt",
+      "target": "submit_button",
+      "preconditions": [
+        "mode === 'work'",
+        "prompt.trim().length >= 2",
+        "generationInProgress === false"
+      ],
+      "action": "callApi",
+      "api": "POST /api/work-mode/analyze",
+      "analyticsEvent": "workmode_prompt_submitted",
+      "nextScreen": "analyzing_prompt",
+      "nextState": "analyzing"
+    },
+    {
+      "id": "clear_prompt",
+      "target": "clear_button",
+      "preconditions": ["prompt.length > 0"],
+      "action": "clearPrompt",
+      "nextState": "idle"
+    }
+  ],
+  "keyboardActions": [
+    {
+      "keys": ["Ctrl+Enter"],
+      "action": "submit_work_prompt"
+    },
+    {
+      "keys": ["Meta+Enter"],
+      "action": "submit_work_prompt"
+    }
+  ],
+  "validation": [
+    {
+      "rule": "empty_prompt",
+      "condition": "prompt.trim().length === 0",
+      "message": "Enter a prompt to start Work Mode.",
+      "blocksSubmit": true
+    },
+    {
+      "rule": "too_long",
+      "condition": "prompt.length > 12000",
+      "message": "This prompt is too long for the prototype. Shorten it or move details into sources later.",
+      "blocksSubmit": true
+    }
+  ],
+  "edgeCases": [
+    {
+      "case": "user_pastes_large_prompt",
+      "behavior": "Show length warning and disable submit above maxLength."
+    },
+    {
+      "case": "backend_offline",
+      "behavior": "Allow mock/local analysis only if mock mode is enabled; otherwise show recoverable error."
+    }
+  ]
+}

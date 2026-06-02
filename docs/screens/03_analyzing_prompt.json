@@ -1,0 +1,71 @@
+{
+  "id": "analyzing_prompt",
+  "name": "Analyzing Prompt",
+  "purpose": "Show that the system is detecting role, artifact, workflow, skill, modules, and source mode.",
+  "state": "analyzing",
+  "visibleComponents": [
+    "prompt_preview",
+    "analysis_progress",
+    "cancel_analysis_button"
+  ],
+  "progressMessages": [
+    "Detecting role and artifact",
+    "Matching skills",
+    "Selecting suggested modules",
+    "Checking source needs"
+  ],
+  "apiCall": {
+    "method": "POST",
+    "path": "/api/work-mode/analyze",
+    "timeoutMs": 20000,
+    "abortable": true,
+    "successNextScreen": "detection_summary",
+    "failureNextScreen": "errors_and_recovery"
+  },
+  "clickActions": [
+    {
+      "id": "cancel_analysis",
+      "target": "cancel_analysis_button",
+      "action": "abortRequest",
+      "nextScreen": "empty_prompt",
+      "nextState": "typing_prompt"
+    }
+  ],
+  "successTransition": {
+    "store": [
+      "analysisId",
+      "detectedRole",
+      "detectedArtifact",
+      "recommendedWorkflowId",
+      "recommendedSkillId",
+      "recommendedModuleIds",
+      "sourceMode",
+      "confidence",
+      "skillCandidates"
+    ],
+    "nextState": "reviewing_detection"
+  },
+  "failureHandling": [
+    {
+      "errorCode": "BACKEND_UNAVAILABLE",
+      "message": "The backend is unavailable. You can retry or use mock analysis if enabled.",
+      "actions": ["retry", "use_mock_analysis"]
+    },
+    {
+      "errorCode": "RATE_LIMITED",
+      "message": "Too many requests. Wait a moment and retry.",
+      "actions": ["retry_later"]
+    },
+    {
+      "errorCode": "INVALID_PROMPT",
+      "message": "The prompt could not be analyzed. Edit it and try again.",
+      "actions": ["edit_prompt"]
+    }
+  ],
+  "analytics": {
+    "onEnter": "analysis_started",
+    "onSuccess": "analysis_completed",
+    "onCancel": "analysis_cancelled",
+    "onFailure": "analysis_failed"
+  }
+}

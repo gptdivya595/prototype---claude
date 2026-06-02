@@ -1,0 +1,283 @@
+{
+  "version": "0.1.0",
+  "basePath": "/api/work-mode",
+  "transport": "http",
+  "apiEnvelope": {
+    "success": {
+      "ok": true,
+      "data": "T",
+      "requestId": "string"
+    },
+    "error": {
+      "ok": false,
+      "error": {
+        "code": "string",
+        "message": "string",
+        "details": "unknown"
+      },
+      "requestId": "string"
+    }
+  },
+  "endpoints": [
+    {
+      "id": "health",
+      "method": "GET",
+      "path": "/health",
+      "auth": "none_or_demo_token",
+      "purpose": "Check service health and feature availability.",
+      "request": null,
+      "response": {
+        "status": "healthy",
+        "service": "work-mode-api",
+        "hasOpenAiKey": "boolean",
+        "features": {
+          "llmClassifier": "boolean",
+          "llmWorkPlan": "boolean",
+          "llmAnswer": "boolean",
+          "sseStreaming": "boolean",
+          "webSocket": false,
+          "persistence": "memory"
+        }
+      },
+      "frontendUsage": "App shell backend status indicator."
+    },
+    {
+      "id": "list_skills",
+      "method": "GET",
+      "path": "/skills",
+      "auth": "none_or_demo_token",
+      "purpose": "Return available Work Mode skills and module options.",
+      "request": null,
+      "response": {
+        "skills": [
+          {
+            "id": "investor_deck_builder",
+            "label": "Investor Deck Builder",
+            "description": "Creates an investor-facing slide deck roadmap.",
+            "workflowId": "slide_deck",
+            "supportedRoles": ["Founder", "Researcher", "Product Manager", "Executive"],
+            "supportedArtifacts": ["PPT"],
+            "defaultModuleIds": ["assumptions", "validation_checklist"],
+            "optionalModuleIds": ["competitor_analysis", "market_landscape", "investor_framing", "sources_required"]
+          },
+          {
+            "id": "prd_builder",
+            "label": "PRD Builder",
+            "description": "Creates a structured product requirements roadmap.",
+            "workflowId": "prd_generation",
+            "supportedRoles": ["Product Manager", "Founder"],
+            "supportedArtifacts": ["PRD"],
+            "defaultModuleIds": ["assumptions", "user_personas", "metrics", "risk_analysis", "validation_checklist"],
+            "optionalModuleIds": ["competitor_analysis", "implementation_plan"]
+          },
+          {
+            "id": "bug_fix_planner",
+            "label": "Bug Fix Planner",
+            "description": "Creates a debugging and verification roadmap.",
+            "workflowId": "debugging_bug_fix",
+            "supportedRoles": ["Developer"],
+            "supportedArtifacts": ["Code"],
+            "defaultModuleIds": ["root_cause_analysis", "test_cases", "validation_checklist", "risk_analysis"],
+            "optionalModuleIds": ["api_examples", "database_schema"]
+          }
+        ]
+      },
+      "frontendUsage": "Skill selector and suggestion checklist."
+    },
+    {
+      "id": "analyze_prompt",
+      "method": "POST",
+      "path": "/analyze",
+      "auth": "none_or_demo_token",
+      "purpose": "Detect role, artifact, skill, workflow, modules, confidence, and source mode.",
+      "request": {
+        "conversationId": "string",
+        "mode": "work",
+        "prompt": "string"
+      },
+      "response": {
+        "analysisId": "string",
+        "conversationId": "string",
+        "detectedRole": "WorkRole",
+        "detectedArtifact": "WorkArtifact",
+        "taskCategory": "string",
+        "recommendedWorkflowId": "WorkflowId",
+        "recommendedSkillId": "SkillId",
+        "confidence": "number",
+        "reason": "string",
+        "recommendedModuleIds": ["ModuleId"],
+        "sourceMode": "SourceMode",
+        "skillCandidates": [
+          {
+            "skillId": "SkillId",
+            "score": "number",
+            "matchedSignals": ["string"]
+          }
+        ],
+        "questionsForUser": ["string"]
+      },
+      "frontendUsage": "Detection summary screen.",
+      "notes": [
+        "recommendedModuleIds are defaults only.",
+        "User-selected modules are sent later as selectedModuleIds."
+      ]
+    },
+    {
+      "id": "create_work_plan",
+      "method": "POST",
+      "path": "/work-plans",
+      "auth": "none_or_demo_token",
+      "purpose": "Create draft WorkPlanRecord from saved analysis and user selections.",
+      "request": {
+        "analysisId": "string",
+        "roleOverride": "WorkRole | null",
+        "artifactOverride": "WorkArtifact | null",
+        "workflowOverride": "WorkflowId | null",
+        "skillOverride": "SkillId | null",
+        "selectedModuleIds": ["ModuleId"],
+        "sourceMode": "SourceMode"
+      },
+      "response": {
+        "workPlanId": "string",
+        "conversationId": "string",
+        "analysisId": "string",
+        "status": "draft",
+        "version": 1,
+        "plan": "WorkPlan",
+        "approvedPlan": null,
+        "generatedOutputIds": [],
+        "createdAt": "ISODate",
+        "updatedAt": "ISODate"
+      },
+      "frontendUsage": "Work Plan editor initial data."
+    },
+    {
+      "id": "get_work_plan",
+      "method": "GET",
+      "path": "/work-plans/:id",
+      "auth": "none_or_demo_token",
+      "purpose": "Fetch latest WorkPlanRecord.",
+      "request": null,
+      "response": "WorkPlanRecord",
+      "frontendUsage": "Recover stale version, reload after refresh, or retry failed save."
+    },
+    {
+      "id": "update_work_plan",
+      "method": "PATCH",
+      "path": "/work-plans/:id",
+      "auth": "none_or_demo_token",
+      "purpose": "Autosave user edits to draft Work Plan.",
+      "request": {
+        "version": "number",
+        "plan": "WorkPlan"
+      },
+      "response": "WorkPlanRecord",
+      "frontendUsage": "Autosave and manual save.",
+      "errorCases": [
+        {
+          "status": 409,
+          "code": "STALE_WORK_PLAN_VERSION",
+          "meaning": "Client version is older than server version."
+        }
+      ]
+    },
+    {
+      "id": "approve_work_plan",
+      "method": "POST",
+      "path": "/work-plans/:id/approve",
+      "auth": "none_or_demo_token",
+      "purpose": "Freeze draft plan into approved snapshot.",
+      "request": {
+        "version": "number"
+      },
+      "response": "WorkPlanRecord",
+      "frontendUsage": "Approval bar.",
+      "preconditions": [
+        "Work Plan exists",
+        "status is draft",
+        "required sections are valid",
+        "client version is current"
+      ]
+    },
+    {
+      "id": "generate_answer",
+      "method": "POST",
+      "path": "/work-plans/:id/generate",
+      "auth": "none_or_demo_token",
+      "purpose": "Generate final answer from approvedPlan snapshot.",
+      "request": {
+        "version": "number | optional"
+      },
+      "response": {
+        "answerId": "string",
+        "workPlanId": "string",
+        "generatedFromVersion": "number",
+        "answer": "string",
+        "validation": "ValidationResult",
+        "createdAt": "ISODate"
+      },
+      "frontendUsage": "Generation progress and answer screen.",
+      "preconditions": [
+        "Work Plan status is approved",
+        "approvedPlan exists"
+      ]
+    },
+    {
+      "id": "generate_answer_stream",
+      "method": "POST",
+      "path": "/work-plans/:id/generate-stream",
+      "auth": "none_or_demo_token",
+      "transport": "sse",
+      "mvp": "optional",
+      "purpose": "Stream final answer deltas using Server-Sent Events.",
+      "request": {
+        "answerFormat": "markdown",
+        "stream": true
+      },
+      "events": [
+        "generation.started",
+        "generation.delta",
+        "generation.completed",
+        "generation.validation_started",
+        "generation.validation_completed",
+        "generation.error"
+      ],
+      "frontendUsage": "Generation progress with token streaming."
+    }
+  ],
+  "sharedTypes": {
+    "WorkPlan": {
+      "prompt": "string",
+      "role": "WorkRole",
+      "artifact": "WorkArtifact",
+      "workflowId": "WorkflowId",
+      "skillId": "SkillId",
+      "objective": "string",
+      "audience": "string | undefined",
+      "sourceMode": "SourceMode",
+      "roadmapDepth": "RoadmapDepth",
+      "riskLevel": "RiskLevel",
+      "assumptions": ["string"],
+      "missingContext": ["string"],
+      "sections": ["WorkPlanSection"],
+      "validationCriteria": ["string"],
+      "selectedModuleIds": ["ModuleId"]
+    },
+    "WorkPlanSection": {
+      "id": "string",
+      "title": "string",
+      "instructions": "string",
+      "required": "boolean",
+      "sourceRefs": ["string"]
+    },
+    "ValidationResult": {
+      "matchesApprovedPlan": "boolean",
+      "missingSections": ["string"],
+      "unsupportedClaims": ["string"],
+      "qualityScore": "number",
+      "recommendedFixes": ["string"],
+      "sourceNeededClaims": ["string"],
+      "passedChecks": ["string"]
+    }
+  }
+}

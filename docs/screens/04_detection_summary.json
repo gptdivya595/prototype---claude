@@ -1,0 +1,116 @@
+{
+  "id": "detection_summary",
+  "name": "Detection Summary",
+  "purpose": "Let user review and override detected role, artifact, workflow, skill, confidence, and source mode.",
+  "state": "reviewing_detection",
+  "visibleComponents": [
+    "prompt_preview",
+    "role_selector",
+    "artifact_selector",
+    "workflow_selector",
+    "skill_recommendation",
+    "confidence_badge",
+    "reason_panel",
+    "alternative_skills",
+    "continue_button"
+  ],
+  "fields": [
+    {
+      "id": "roleOverride",
+      "type": "select",
+      "optionsRef": "WorkRole",
+      "defaultFrom": "detectedRole"
+    },
+    {
+      "id": "artifactOverride",
+      "type": "select",
+      "optionsRef": "WorkArtifact",
+      "defaultFrom": "detectedArtifact"
+    },
+    {
+      "id": "workflowOverride",
+      "type": "select",
+      "optionsRef": "WorkflowId",
+      "defaultFrom": "recommendedWorkflowId"
+    },
+    {
+      "id": "skillOverride",
+      "type": "select",
+      "optionsRef": "SkillId",
+      "defaultFrom": "recommendedSkillId"
+    }
+  ],
+  "clickActions": [
+    {
+      "id": "change_role",
+      "target": "role_selector",
+      "action": "setRoleOverride",
+      "analyticsEvent": "role_override_changed",
+      "sideEffects": ["markDetectionOverridden"]
+    },
+    {
+      "id": "change_artifact",
+      "target": "artifact_selector",
+      "action": "setArtifactOverride",
+      "analyticsEvent": "artifact_override_changed",
+      "sideEffects": ["recomputeWorkflowCandidates"]
+    },
+    {
+      "id": "change_workflow",
+      "target": "workflow_selector",
+      "action": "setWorkflowOverride",
+      "sideEffects": ["recomputeSkillCandidates", "recomputeSuggestedModules"]
+    },
+    {
+      "id": "select_alternative_skill",
+      "target": "alternative_skill_item",
+      "action": "setSkillOverride",
+      "analyticsEvent": "skill_changed",
+      "sideEffects": ["recomputeWorkflowFromSkill", "recomputeSuggestedModules"]
+    },
+    {
+      "id": "continue_to_suggestions",
+      "target": "continue_button",
+      "preconditions": [
+        "analysisId exists",
+        "selectedWorkflowId exists",
+        "selectedSkillId exists"
+      ],
+      "action": "navigate",
+      "nextScreen": "skill_and_suggestions",
+      "nextState": "choosing_suggestions"
+    }
+  ],
+  "confidenceRules": [
+    {
+      "range": ">= 0.8",
+      "label": "High confidence",
+      "style": "success"
+    },
+    {
+      "range": ">= 0.65 && < 0.8",
+      "label": "Medium confidence",
+      "style": "neutral"
+    },
+    {
+      "range": "< 0.65",
+      "label": "Low confidence",
+      "style": "warning",
+      "extraBehavior": "Show alternatives and ask user to confirm before continuing."
+    }
+  ],
+  "edgeCases": [
+    {
+      "case": "unknown_role",
+      "behavior": "Allow Unknown but require workflow and skill selection before continuing."
+    },
+    {
+      "case": "user_changes_artifact_to_incompatible_value",
+      "behavior": "Recompute compatible workflows and show first valid option."
+    },
+    {
+      "case": "low_confidence_no_alternatives",
+      "behavior": "Show role/artifact/workflow selectors and allow manual continuation."
+    }
+  ]
+}

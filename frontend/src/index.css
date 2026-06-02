@@ -1,0 +1,62 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --wm-bg: #f6f5f1;
+  --wm-surface: #fbfaf7;
+  --wm-surface-strong: #ffffff;
+  --wm-surface-muted: #efeee9;
+  --wm-border: #dad7ce;
+  --wm-border-strong: #b8b3a7;
+  --wm-text: #24231f;
+  --wm-text-muted: #69665d;
+  --wm-text-soft: #8a8579;
+  --wm-accent: #315f54;
+  --wm-accent-strong: #21483f;
+  --wm-accent-soft: #dce9e3;
+  --wm-warning: #9a5a16;
+  --wm-warning-soft: #f5e5ca;
+  --wm-danger: #9f3131;
+  --wm-danger-soft: #f1d6d6;
+  --wm-success: #31694d;
+  --wm-success-soft: #dcece2;
+  --wm-focus: #315f54;
+  color: var(--wm-text);
+  background: var(--wm-bg);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  font-family:
+    "Satoshi",
+    "Aptos",
+    "Segoe UI",
+    system-ui,
+    sans-serif;
+}
+
+button,
+textarea,
+select,
+input {
+  font: inherit;
+}
+
+button:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+input:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--wm-focus) 30%, transparent);
+  outline-offset: 2px;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--wm-focus) 18%, transparent);
+}

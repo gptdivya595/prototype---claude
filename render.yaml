@@ -1,0 +1,32 @@
+services:
+  - type: web
+    name: work-mode-api
+    runtime: node
+    plan: free
+    buildCommand: npm ci
+    startCommand: npm run start:server
+    healthCheckPath: /health
+    maxShutdownDelaySeconds: 30
+    envVars:
+      - key: NODE_VERSION
+        value: 20
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: DEFAULT_MODEL
+        value: gpt-4o-mini
+      - key: OPENAI_MODEL
+        value: gpt-4o-mini
+      - key: USE_LLM_CLASSIFIER
+        value: "true"
+      - key: USE_LLM_WORK_PLAN
+        value: "true"
+      - key: USE_LLM_ANSWER
+        value: "true"
+      - key: FRONTEND_ORIGIN
+        value: https://your-vercel-app.vercel.app
+      - key: FRONTEND_ORIGINS
+        value: https://your-vercel-app.vercel.app
+      - key: OPENAI_TIMEOUT_MS
+        value: "12000"
+      - key: OPENAI_MAX_RETRIES
+        value: "1"

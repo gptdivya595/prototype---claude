@@ -1,0 +1,149 @@
+{
+  "id": "work_plan_editor",
+  "name": "Work Plan Editor",
+  "purpose": "Let user edit the roadmap before approval.",
+  "state": "editing_plan",
+  "recordType": "WorkPlanRecord",
+  "editableObject": "WorkPlanRecord.plan",
+  "visibleComponents": [
+    "work_plan_header",
+    "save_status",
+    "objective_editor",
+    "assumptions_editor",
+    "missing_context_editor",
+    "section_editor_list",
+    "validation_criteria_editor",
+    "approval_bar"
+  ],
+  "editableFields": [
+    "plan.objective",
+    "plan.assumptions",
+    "plan.missingContext",
+    "plan.sections[].title",
+    "plan.sections[].instructions",
+    "plan.sections[].required",
+    "plan.validationCriteria",
+    "plan.selectedModuleIds",
+    "plan.sourceMode"
+  ],
+  "protectedFields": [
+    "workPlanId",
+    "analysisId",
+    "conversationId",
+    "version",
+    "approvedPlan",
+    "status"
+  ],
+  "autosave": {
+    "enabled": true,
+    "debounceMs": 1000,
+    "api": "PATCH /api/work-mode/work-plans/:id",
+    "requestShape": {
+      "version": "WorkPlanRecord.version",
+      "plan": "WorkPlanRecord.plan"
+    },
+    "states": ["idle", "saving", "saved", "failed"],
+    "failureBehavior": "Keep local draft, show Save failed, allow retry."
+  },
+  "clickActions": [
+    {
+      "id": "edit_objective",
+      "target": "objective_textarea",
+      "action": "updatePlanField",
+      "sideEffects": ["markDirty", "scheduleAutosave", "resetApprovalIfApproved"]
+    },
+    {
+      "id": "add_assumption",
+      "target": "add_assumption_button",
+      "action": "appendListItem",
+      "sideEffects": ["markDirty", "scheduleAutosave"]
+    },
+    {
+      "id": "remove_assumption",
+      "target": "remove_assumption_button",
+      "action": "removeListItem",
+      "sideEffects": ["markDirty", "scheduleAutosave"]
+    },
+    {
+      "id": "add_section",
+      "target": "add_section_button",
+      "action": "appendSection",
+      "payload": {
+        "required": false
+      },
+      "analyticsEvent": "workplan_section_added",
+      "sideEffects": ["markDirty", "scheduleAutosave"]
+    },
+    {
+      "id": "remove_section",
+      "target": "remove_section_button",
+      "action": "removeSection",
+      "confirmation": {
+        "showWhen": "section.required === true",
+        "message": "This section is required. Convert it to optional before removing?"
+      },
+      "analyticsEvent": "workplan_section_removed",
+      "sideEffects": ["markDirty", "scheduleAutosave"]
+    },
+    {
+      "id": "move_section_up",
+      "target": "move_up_button",
+      "action": "reorderSection",
+      "payload": { "direction": "up" },
+      "analyticsEvent": "workplan_section_reordered",
+      "sideEffects": ["markDirty", "scheduleAutosave"]
+    },
+    {
+      "id": "move_section_down",
+      "target": "move_down_button",
+      "action": "reorderSection",
+      "payload": { "direction": "down" },
+      "analyticsEvent": "workplan_section_reordered",
+      "sideEffects": ["markDirty", "scheduleAutosave"]
+    },
+    {
+      "id": "retry_save",
+      "target": "retry_save_button",
+      "preconditions": ["autosave.state === 'failed'"],
+      "action": "callApi",
+      "api": "PATCH /api/work-mode/work-plans/:id"
+    }
+  ],
+  "approvalBlockingValidation": [
+    {
+      "rule": "objective_required",
+      "condition": "plan.objective.trim().length === 0",
+      "message": "Objective is required."
+    },
+    {
+      "rule": "at_least_one_section",
+      "condition": "plan.sections.length === 0",
+      "message": "At least one roadmap section is required."
+    },
+    {
+      "rule": "required_section_title",
+      "condition": "required section title is empty",
+      "message": "Required sections need a title."
+    },
+    {
+      "rule": "required_section_instructions",
+      "condition": "required section instructions are empty",
+      "message": "Required sections need instructions."
+    }
+  ],
+  "edgeCases": [
+    {
+      "case": "stale_version",
+      "apiStatus": 409,
+      "behavior": "Reload latest WorkPlanRecord and ask user to reapply local edits."
+    },
+    {
+      "case": "browser_refresh_before_backend_persistence",
+      "behavior": "Draft may be lost; once backend autosave is enabled, restore from server record."
+    },
+    {
+      "case": "very_large_roadmap",
+      "behavior": "Warn when section count exceeds 25 or total instruction text exceeds configured limit."
+    }
+  ]
+}

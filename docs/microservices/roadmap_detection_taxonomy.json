@@ -1,0 +1,159 @@
+{
+  "version": "0.1.0",
+  "purpose": "Canonical taxonomy for Work Mode system identification, roadmap depth, and supported roadmap types.",
+  "identificationFields": [
+    {
+      "id": "detectedRole",
+      "requiredForMvp": true,
+      "values": ["Product Manager", "Researcher", "Developer", "Founder", "Business Analyst", "Designer", "Marketer", "Executive", "Unknown"]
+    },
+    {
+      "id": "detectedArtifact",
+      "requiredForMvp": true,
+      "values": ["Code", "PRD", "BRD", "PPT", "Research Report", "Strategy Memo", "Competitive Analysis", "Technical Design", "Data Analysis", "Unknown"]
+    },
+    {
+      "id": "intentCategory",
+      "requiredForMvp": true,
+      "values": ["planning", "drafting", "debugging", "research", "analysis", "decision_support", "implementation"]
+    },
+    {
+      "id": "recommendedWorkflowId",
+      "requiredForMvp": true
+    },
+    {
+      "id": "recommendedSkillId",
+      "requiredForMvp": true
+    },
+    {
+      "id": "confidence",
+      "requiredForMvp": true,
+      "range": [0, 1]
+    },
+    {
+      "id": "sourceMode",
+      "requiredForMvp": true,
+      "values": ["none", "source_needed_only", "user_uploaded", "web_search"]
+    },
+    {
+      "id": "roadmapDepth",
+      "requiredForMvp": false,
+      "values": ["L1", "L2", "L3", "L4"]
+    },
+    {
+      "id": "riskLevel",
+      "requiredForMvp": false,
+      "values": ["low", "medium", "high", "restricted"]
+    },
+    {
+      "id": "domain",
+      "requiredForMvp": false,
+      "values": ["product", "engineering", "research", "business", "marketing", "legal", "finance", "medical", "education"]
+    },
+    {
+      "id": "audience",
+      "requiredForMvp": false
+    },
+    {
+      "id": "entities",
+      "requiredForMvp": false
+    }
+  ],
+  "confidenceBands": [
+    {
+      "id": "high",
+      "min": 0.8,
+      "behavior": "Auto-select workflow, skill, modules, and source mode while allowing override."
+    },
+    {
+      "id": "medium",
+      "min": 0.65,
+      "maxExclusive": 0.8,
+      "behavior": "Show recommendation plus alternatives."
+    },
+    {
+      "id": "low",
+      "maxExclusive": 0.65,
+      "behavior": "Show warning, questions, and alternatives before continuing."
+    }
+  ],
+  "roadmapDepthLevels": [
+    {
+      "id": "L1",
+      "label": "Light Roadmap",
+      "sectionCount": "3-5",
+      "useWhen": ["short prompt", "quick draft", "low context"]
+    },
+    {
+      "id": "L2",
+      "label": "Standard Work Plan",
+      "sectionCount": "6-10",
+      "useWhen": ["normal PRD", "normal deck", "normal bug fix"]
+    },
+    {
+      "id": "L3",
+      "label": "Deep Work Plan",
+      "sectionCount": "10-16",
+      "useWhen": ["competitors", "investors", "technical feasibility", "source-heavy", "multi-stakeholder"]
+    },
+    {
+      "id": "L4",
+      "label": "Enterprise Roadmap",
+      "sectionCount": "16-25",
+      "useWhen": ["high-stakes", "multi-team", "compliance", "security", "financial", "medical", "legal"]
+    }
+  ],
+  "roadmapTypes": {
+    "mvp": [
+      {
+        "workflowId": "prd_generation",
+        "skillId": "prd_builder",
+        "label": "Product Requirements Roadmap",
+        "defaultDepth": "L2",
+        "primaryArtifacts": ["PRD", "BRD", "Technical Design"]
+      },
+      {
+        "workflowId": "slide_deck",
+        "skillId": "investor_deck_builder",
+        "label": "Investor / Slide Deck Roadmap",
+        "defaultDepth": "L3",
+        "primaryArtifacts": ["PPT", "Strategy Memo", "Competitive Analysis"]
+      },
+      {
+        "workflowId": "debugging_bug_fix",
+        "skillId": "bug_fix_planner",
+        "label": "Debugging / Bug Fix Roadmap",
+        "defaultDepth": "L2",
+        "primaryArtifacts": ["Code", "Test Plan", "Technical Design"]
+      }
+    ],
+    "nearTerm": [
+      "technical_architecture",
+      "competitive_analysis",
+      "research_report",
+      "strategy_memo",
+      "data_analysis_plan",
+      "gtm_plan",
+      "ux_research_plan",
+      "test_plan",
+      "api_design"
+    ],
+    "later": [
+      "policy_review",
+      "financial_analysis",
+      "clinical_summary",
+      "interview_kit",
+      "board_deck",
+      "incident_postmortem"
+    ]
+  },
+  "productDecision": {
+    "implementedPolishedRoadmapTypes": 3,
+    "documentedNearTermRoadmapTypes": 9,
+    "documentedLaterRoadmapTypes": 6,
+    "totalPlannedRoadmapTypes": 18,
+    "mvpIdentificationFields": 7,
+    "plannedIdentificationFields": 12,
+    "roadmapDetailLevels": 4
+  }
+}

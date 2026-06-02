@@ -1,0 +1,119 @@
+{
+  "product": "Work Mode",
+  "version": "0.1.0",
+  "purpose": "Master index of all app screens, workflows, click actions, state transitions, and API touchpoints.",
+  "principles": [
+    "Work Mode creates an editable external Work Plan, not hidden model reasoning.",
+    "Final answer generation is blocked until a Work Plan is approved.",
+    "Editing after approval resets the plan to draft.",
+    "Frontend never calls OpenAI directly.",
+    "All backend calls go through /api/work-mode/*."
+  ],
+  "globalStateMachine": {
+    "states": [
+      "idle",
+      "typing_prompt",
+      "analyzing",
+      "reviewing_detection",
+      "choosing_suggestions",
+      "creating_work_plan",
+      "editing_plan",
+      "saving_plan",
+      "save_failed",
+      "approved",
+      "generating",
+      "generation_cancelled",
+      "complete",
+      "error"
+    ],
+    "defaultState": "idle",
+    "terminalStates": ["complete"],
+    "recoverableStates": ["save_failed", "generation_cancelled", "error"]
+  },
+  "screenFiles": [
+    {
+      "id": "app_shell",
+      "file": "01_app_shell.json",
+      "description": "Main Claude-like workspace shell, sidebar, mode selector, and composer."
+    },
+    {
+      "id": "empty_prompt",
+      "file": "02_empty_prompt.json",
+      "description": "Initial Work Mode prompt entry state."
+    },
+    {
+      "id": "analyzing_prompt",
+      "file": "03_analyzing_prompt.json",
+      "description": "Prompt analysis loading state."
+    },
+    {
+      "id": "detection_summary",
+      "file": "04_detection_summary.json",
+      "description": "Detected role, artifact, workflow, skill, confidence, and overrides."
+    },
+    {
+      "id": "skill_and_suggestions",
+      "file": "05_skill_and_suggestions.json",
+      "description": "Skill selector, module checklist, source mode, and create Work Plan action."
+    },
+    {
+      "id": "work_plan_editor",
+      "file": "06_work_plan_editor.json",
+      "description": "Editable Work Plan roadmap editor."
+    },
+    {
+      "id": "approval_bar",
+      "file": "07_approval_bar.json",
+      "description": "Approve/generate state controls and approval reset behavior."
+    },
+    {
+      "id": "generation_progress",
+      "file": "08_generation_progress.json",
+      "description": "Answer generation loading, cancel, retry, and optional streaming state."
+    },
+    {
+      "id": "answer_and_validation",
+      "file": "09_answer_and_validation.json",
+      "description": "Final answer and validation result screen."
+    },
+    {
+      "id": "errors_and_recovery",
+      "file": "10_errors_and_recovery.json",
+      "description": "Error states, recovery actions, stale versions, API failures, and fallback paths."
+    },
+    {
+      "id": "settings_and_source_modes",
+      "file": "11_settings_and_source_modes.json",
+      "description": "Source mode, feature flags, demo token, and backend connectivity UI."
+    },
+    {
+      "id": "mobile_responsive",
+      "file": "12_mobile_responsive.json",
+      "description": "Mobile layouts and interaction behavior for the same flows."
+    },
+    {
+      "id": "shared_contracts",
+      "file": "shared_contracts.json",
+      "description": "Types, API contracts, event names, and shared action definitions."
+    }
+  ],
+  "happyPath": [
+    "app_shell",
+    "empty_prompt",
+    "analyzing_prompt",
+    "detection_summary",
+    "skill_and_suggestions",
+    "work_plan_editor",
+    "approval_bar",
+    "generation_progress",
+    "answer_and_validation"
+  ],
+  "primaryApiFlow": [
+    "POST /api/work-mode/analyze",
+    "GET /api/work-mode/skills",
+    "POST /api/work-mode/work-plans",
+    "PATCH /api/work-mode/work-plans/:id",
+    "POST /api/work-mode/work-plans/:id/approve",
+    "POST /api/work-mode/work-plans/:id/generate"
+  ]
+}

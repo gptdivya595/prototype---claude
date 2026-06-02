@@ -1,0 +1,79 @@
+{
+  "id": "mobile_responsive",
+  "name": "Mobile Responsive Behavior",
+  "purpose": "Define how Work Mode screens adapt to small screens.",
+  "breakpoints": {
+    "mobile": "< 640px",
+    "tablet": "640px - 1023px",
+    "desktop": ">= 1024px"
+  },
+  "globalMobileRules": [
+    "Use single-column stacked flow.",
+    "Sidebar collapses behind menu button.",
+    "Prompt composer remains reachable.",
+    "Approval bar can become sticky at bottom.",
+    "Avoid side-by-side editor and answer panes.",
+    "All section controls must fit without horizontal scrolling.",
+    "Long labels wrap gracefully.",
+    "Touch targets should be at least 44px tall where practical."
+  ],
+  "screenAdaptations": [
+    {
+      "screen": "detection_summary",
+      "mobileBehavior": "Stack selectors vertically. Confidence and reason appear below selectors."
+    },
+    {
+      "screen": "skill_and_suggestions",
+      "mobileBehavior": "Skill cards stack. Module checklist uses full-width rows."
+    },
+    {
+      "screen": "work_plan_editor",
+      "mobileBehavior": "Each section becomes an expandable editor. Move controls become up/down icon buttons."
+    },
+    {
+      "screen": "approval_bar",
+      "mobileBehavior": "Sticky bottom bar with primary action. Secondary action appears in overflow menu."
+    },
+    {
+      "screen": "answer_and_validation",
+      "mobileBehavior": "Answer appears first, validation collapses below with summary badge."
+    }
+  ],
+  "mobileClickActions": [
+    {
+      "id": "expand_section",
+      "target": "section_summary_row",
+      "action": "toggleSectionExpanded"
+    },
+    {
+      "id": "open_action_menu",
+      "target": "section_more_button",
+      "action": "openSectionActionSheet"
+    },
+    {
+      "id": "sticky_approve",
+      "target": "mobile_approval_bar.primary_button",
+      "action": "approveOrGenerateDependingOnStatus"
+    }
+  ],
+  "accessibility": [
+    "Focus moves into opened mobile action sheet.",
+    "Escape or close returns focus to triggering button.",
+    "Expandable sections expose aria-expanded.",
+    "Save and generation status use aria-live polite."
+  ],
+  "edgeCases": [
+    {
+      "case": "keyboard_open_on_mobile",
+      "behavior": "Composer and focused textarea should remain visible."
+    },
+    {
+      "case": "long_section_title",
+      "behavior": "Wrap to multiple lines without overlapping controls."
+    },
+    {
+      "case": "many_sections",
+      "behavior": "Use collapsed section summaries to avoid endless dense editing surface."
+    }
+  ]
+}

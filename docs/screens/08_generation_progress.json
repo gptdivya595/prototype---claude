@@ -1,0 +1,83 @@
+{
+  "id": "generation_progress",
+  "name": "Generation Progress",
+  "purpose": "Show final answer generation progress, cancellation, and retry.",
+  "state": "generating",
+  "transport": {
+    "mvp": "http",
+    "optional": "sse",
+    "websocket": "deferred_until_realtime_collaboration"
+  },
+  "visibleComponents": [
+    "approved_plan_snapshot_summary",
+    "generation_spinner_or_stream",
+    "cancel_generation_button",
+    "partial_answer_preview",
+    "status_message"
+  ],
+  "apiCall": {
+    "method": "POST",
+    "path": "/api/work-mode/work-plans/:id/generate",
+    "abortable": true,
+    "timeoutMs": 90000
+  },
+  "sseEventsIfEnabled": [
+    "generation.started",
+    "generation.delta",
+    "generation.completed",
+    "generation.validation_started",
+    "generation.validation_completed",
+    "generation.error"
+  ],
+  "clickActions": [
+    {
+      "id": "cancel_generation",
+      "target": "cancel_generation_button",
+      "action": "abortGeneration",
+      "analyticsEvent": "generation_cancelled",
+      "nextState": "generation_cancelled"
+    },
+    {
+      "id": "retry_generation",
+      "target": "retry_generation_button",
+      "preconditions": [
+        "status === 'approved'",
+        "lastGenerationFailed === true"
+      ],
+      "action": "callApi",
+      "api": "POST /api/work-mode/work-plans/:id/generate",
+      "nextState": "generating"
+    },
+    {
+      "id": "return_to_editor",
+      "target": "return_to_editor_button",
+      "action": "navigate",
+      "nextScreen": "work_plan_editor",
+      "nextState": "approved"
+    }
+  ],
+  "successTransition": {
+    "store": [
+      "answerId",
+      "answer",
+      "validation"
+    ],
+    "nextScreen": "answer_and_validation",
+    "nextState": "complete",
+    "analyticsEvent": "generation_completed"
+  },
+  "failureHandling": [
+    {
+      "case": "cancelled_by_user",
+      "behavior": "Return to approved state. Do not mark Work Plan generated."
+    },
+    {
+      "case": "openai_timeout",
+      "behavior": "Show retry. If partial answer exists, mark incomplete."
+    },
+    {
+      "case": "validation_failed_after_answer",
+      "behavior": "Show answer with validation warning instead of blank screen."
+    }
+  ]
+}

@@ -1,0 +1,91 @@
+{
+  "id": "errors_and_recovery",
+  "name": "Errors And Recovery",
+  "purpose": "Define user-facing behavior for failures and edge cases.",
+  "state": "error",
+  "errorTypes": [
+    {
+      "code": "BACKEND_UNAVAILABLE",
+      "message": "The backend is unavailable.",
+      "userActions": ["retry", "keep_editing_locally"],
+      "recovery": "Retry health check or continue with mock mode if enabled."
+    },
+    {
+      "code": "INVALID_PROMPT",
+      "message": "This prompt could not be analyzed.",
+      "userActions": ["edit_prompt"],
+      "recovery": "Return to prompt composer."
+    },
+    {
+      "code": "STALE_WORK_PLAN_VERSION",
+      "httpStatus": 409,
+      "message": "This Work Plan changed elsewhere.",
+      "userActions": ["reload_latest", "copy_local_edits"],
+      "recovery": "Fetch latest WorkPlanRecord and ask user to reapply local changes."
+    },
+    {
+      "code": "GENERATE_BEFORE_APPROVAL",
+      "httpStatus": 409,
+      "message": "Approve the Work Plan before generating.",
+      "userActions": ["return_to_editor"],
+      "recovery": "Navigate to Work Plan editor and show approval bar."
+    },
+    {
+      "code": "RATE_LIMITED",
+      "httpStatus": 429,
+      "message": "Too many requests. Wait and retry.",
+      "userActions": ["retry_later"],
+      "recovery": "Respect retry-after if provided."
+    },
+    {
+      "code": "OPENAI_UNAVAILABLE",
+      "message": "Model generation is unavailable.",
+      "userActions": ["retry", "use_template_fallback"],
+      "recovery": "Use deterministic or template fallback if feature is enabled."
+    },
+    {
+      "code": "VALIDATION_FAILED",
+      "message": "The answer was generated, but validation could not complete.",
+      "userActions": ["show_answer_anyway", "retry_validation"],
+      "recovery": "Display answer with validation warning."
+    }
+  ],
+  "clickActions": [
+    {
+      "id": "retry",
+      "target": "retry_button",
+      "action": "retryLastSafeAction"
+    },
+    {
+      "id": "reload_latest_plan",
+      "target": "reload_latest_button",
+      "action": "fetchWorkPlanRecord"
+    },
+    {
+      "id": "keep_editing_locally",
+      "target": "keep_editing_button",
+      "action": "dismissError",
+      "nextScreen": "work_plan_editor"
+    },
+    {
+      "id": "return_to_prompt",
+      "target": "edit_prompt_button",
+      "action": "navigate",
+      "nextScreen": "empty_prompt"
+    }
+  ],
+  "displayRules": [
+    {
+      "rule": "never_show_raw_stack_trace",
+      "behavior": "Show requestId and readable error message; log details in backend."
+    },
+    {
+      "rule": "show_request_id",
+      "behavior": "Display requestId in expandable details for debugging."
+    },
+    {
+      "rule": "preserve_user_work",
+      "behavior": "Do not clear prompt or Work Plan draft when recoverable errors occur."
+    }
+  ]
+}

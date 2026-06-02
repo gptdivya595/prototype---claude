@@ -1,0 +1,87 @@
+{
+  "id": "approval_bar",
+  "name": "Approval Bar",
+  "purpose": "Control approval and generation eligibility.",
+  "states": {
+    "draft": {
+      "primaryAction": "Approve Work Plan",
+      "secondaryAction": null,
+      "message": "Approve this Work Plan before generating."
+    },
+    "approved": {
+      "primaryAction": "Generate answer",
+      "secondaryAction": "Edit plan",
+      "message": "Approved. The final answer will use this snapshot."
+    },
+    "generated": {
+      "primaryAction": "Regenerate from approved plan",
+      "secondaryAction": "Edit plan",
+      "message": "Generated from approved Work Plan."
+    },
+    "dirty_after_approval": {
+      "primaryAction": "Approve updated Work Plan",
+      "secondaryAction": null,
+      "message": "Edits reset approval. Approve again before generating."
+    }
+  },
+  "clickActions": [
+    {
+      "id": "approve_work_plan",
+      "target": "approve_button",
+      "preconditions": [
+        "status === 'draft'",
+        "approvalBlockingValidation.length === 0",
+        "autosave.state !== 'saving'"
+      ],
+      "action": "callApi",
+      "api": "POST /api/work-mode/work-plans/:id/approve",
+      "requestShape": {
+        "version": "WorkPlanRecord.version"
+      },
+      "analyticsEvent": "workplan_approved",
+      "nextState": "approved"
+    },
+    {
+      "id": "generate_answer",
+      "target": "generate_button",
+      "preconditions": [
+        "status === 'approved'",
+        "approvedPlan exists",
+        "generationInProgress === false"
+      ],
+      "action": "callApi",
+      "api": "POST /api/work-mode/work-plans/:id/generate",
+      "analyticsEvent": "generation_started",
+      "nextScreen": "generation_progress",
+      "nextState": "generating"
+    },
+    {
+      "id": "edit_after_approval",
+      "target": "editor_field",
+      "preconditions": ["status === 'approved' || status === 'generated'"],
+      "action": "resetApprovalToDraft",
+      "confirmation": {
+        "showWhen": "status === 'generated'",
+        "message": "Editing the Work Plan makes the current answer stale."
+      },
+      "nextState": "editing_plan"
+    }
+  ],
+  "disabledReasons": [
+    {
+      "target": "approve_button",
+      "condition": "approvalBlockingValidation.length > 0",
+      "message": "Fix required Work Plan fields before approval."
+    },
+    {
+      "target": "generate_button",
+      "condition": "status !== 'approved'",
+      "message": "Approve the Work Plan before generating."
+    },
+    {
+      "target": "generate_button",
+      "condition": "autosave.state === 'saving'",
+      "message": "Wait for the latest edits to save before generating."
+    }
+  ]
+}

@@ -1,0 +1,117 @@
+{
+  "id": "skill_and_suggestions",
+  "name": "Skill And Suggestions",
+  "purpose": "Let user select skill, modules, and source mode before Work Plan creation.",
+  "state": "choosing_suggestions",
+  "visibleComponents": [
+    "skill_selector",
+    "module_checklist",
+    "source_mode_selector",
+    "workflow_reason_panel",
+    "create_work_plan_button",
+    "back_to_detection_button"
+  ],
+  "dataSources": [
+    {
+      "id": "skills",
+      "api": "GET /api/work-mode/skills",
+      "fallback": "localSkillFixture"
+    },
+    {
+      "id": "moduleCatalog",
+      "source": "shared_contracts.ModuleId + backend skill response"
+    }
+  ],
+  "fields": [
+    {
+      "id": "selectedSkillId",
+      "type": "select_cards",
+      "required": true
+    },
+    {
+      "id": "selectedModuleIds",
+      "type": "checkbox_group",
+      "required": false
+    },
+    {
+      "id": "sourceMode",
+      "type": "segmented_control",
+      "options": ["none", "source_needed_only", "user_uploaded", "web_search"],
+      "disabledOptions": ["user_uploaded", "web_search"],
+      "defaultFrom": "analysis.sourceMode"
+    }
+  ],
+  "clickActions": [
+    {
+      "id": "change_skill",
+      "target": "skill_selector.card",
+      "action": "setSelectedSkill",
+      "analyticsEvent": "skill_changed",
+      "sideEffects": [
+        "updateWorkflowFromSkill",
+        "recomputeDefaultModules",
+        "preserveCompatibleManualModules",
+        "showSuggestionsUpdatedNotice"
+      ]
+    },
+    {
+      "id": "toggle_module",
+      "target": "module_checkbox",
+      "action": "toggleModule",
+      "analyticsEvent": "module_toggled",
+      "sideEffects": ["markModuleAsManuallyChanged"]
+    },
+    {
+      "id": "change_source_mode",
+      "target": "source_mode_selector",
+      "action": "setSourceMode",
+      "analyticsEvent": "source_mode_changed"
+    },
+    {
+      "id": "create_work_plan",
+      "target": "create_work_plan_button",
+      "preconditions": [
+        "analysisId exists",
+        "selectedSkillId exists",
+        "sourceMode is enabled",
+        "selectedModuleIds contains only known ModuleId values"
+      ],
+      "action": "callApi",
+      "api": "POST /api/work-mode/work-plans",
+      "requestShape": {
+        "analysisId": "analysisId",
+        "roleOverride": "roleOverride | null",
+        "artifactOverride": "artifactOverride | null",
+        "workflowOverride": "workflowOverride | null",
+        "skillOverride": "selectedSkillId",
+        "selectedModuleIds": "selectedModuleIds",
+        "sourceMode": "sourceMode"
+      },
+      "nextScreen": "work_plan_editor",
+      "nextState": "creating_work_plan"
+    },
+    {
+      "id": "back_to_detection",
+      "target": "back_to_detection_button",
+      "action": "navigate",
+      "nextScreen": "detection_summary",
+      "nextState": "reviewing_detection"
+    }
+  ],
+  "warnings": [
+    {
+      "id": "source_needed_warning",
+      "condition": "sourceHeavyPrompt === true && sourceMode === 'none'",
+      "message": "This task likely needs evidence. Claims may be marked unverified if sources are not enabled."
+    },
+    {
+      "id": "web_search_disabled",
+      "condition": "sourceMode === 'web_search' && webSearchEnabled === false",
+      "message": "Live web search is not enabled. Use Source needed instead."
+    }
+  ],
+  "ownershipRules": {
+    "recommendedModuleIds": "From analyze endpoint; used as default suggestions.",
+    "selectedModuleIds": "Owned by user after this screen; sent to create Work Plan."
+  }
+}

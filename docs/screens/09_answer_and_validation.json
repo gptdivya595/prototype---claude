@@ -1,0 +1,107 @@
+{
+  "id": "answer_and_validation",
+  "name": "Answer And Validation",
+  "purpose": "Display final answer and validation summary after generation.",
+  "state": "complete",
+  "visibleComponents": [
+    "answer_header",
+    "approved_plan_reference",
+    "answer_markdown",
+    "validation_panel",
+    "copy_answer_button",
+    "edit_plan_button",
+    "regenerate_button",
+    "export_menu"
+  ],
+  "answerHeader": {
+    "statusText": "Generated from approved Work Plan",
+    "showStaleBadgeWhen": "draftPlanVersion > approvedPlanVersion"
+  },
+  "validationPanel": {
+    "fields": [
+      "matchesApprovedPlan",
+      "missingSections",
+      "unsupportedClaims",
+      "qualityScore",
+      "recommendedFixes"
+    ],
+    "qualityScoreLabels": [
+      {
+        "range": ">= 8",
+        "label": "Strong",
+        "style": "success"
+      },
+      {
+        "range": ">= 6 && < 8",
+        "label": "Needs review",
+        "style": "warning"
+      },
+      {
+        "range": "< 6",
+        "label": "Revise",
+        "style": "danger"
+      }
+    ]
+  },
+  "clickActions": [
+    {
+      "id": "copy_answer",
+      "target": "copy_answer_button",
+      "action": "copyToClipboard",
+      "payload": "answer.markdown"
+    },
+    {
+      "id": "edit_plan",
+      "target": "edit_plan_button",
+      "action": "navigate",
+      "nextScreen": "work_plan_editor",
+      "nextState": "editing_plan",
+      "sideEffects": ["markAnswerStaleIfPlanChanges"]
+    },
+    {
+      "id": "regenerate",
+      "target": "regenerate_button",
+      "preconditions": [
+        "status === 'generated'",
+        "approvedPlan exists"
+      ],
+      "action": "callApi",
+      "api": "POST /api/work-mode/work-plans/:id/generate",
+      "nextScreen": "generation_progress"
+    },
+    {
+      "id": "export_answer_markdown",
+      "target": "export_menu.markdown",
+      "action": "downloadFile",
+      "payload": {
+        "filename": "workmode-answer.md",
+        "content": "answer.markdown"
+      },
+      "mvp": "optional"
+    },
+    {
+      "id": "export_work_plan_json",
+      "target": "export_menu.work_plan_json",
+      "action": "downloadFile",
+      "payload": {
+        "filename": "workmode-plan.json",
+        "content": "WorkPlanRecord"
+      },
+      "mvp": "optional"
+    }
+  ],
+  "edgeCases": [
+    {
+      "case": "validation_missing_sections",
+      "behavior": "Show missing section list with action to return to editor."
+    },
+    {
+      "case": "source_needed_claims",
+      "behavior": "Show source-needed claims clearly and avoid implying verification."
+    },
+    {
+      "case": "answer_stale_after_edit",
+      "behavior": "Show stale badge and require approval/regeneration for updated plan."
+    }
+  ]
+}

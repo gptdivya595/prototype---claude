@@ -1,0 +1,232 @@
+{
+  "id": "shared_contracts",
+  "version": "0.1.0",
+  "types": {
+    "WorkModeUiState": [
+      "idle",
+      "typing_prompt",
+      "analyzing",
+      "reviewing_detection",
+      "choosing_suggestions",
+      "creating_work_plan",
+      "editing_plan",
+      "saving_plan",
+      "save_failed",
+      "approved",
+      "generating",
+      "generation_cancelled",
+      "complete",
+      "error"
+    ],
+    "WorkRole": [
+      "Product Manager",
+      "Researcher",
+      "Developer",
+      "Founder",
+      "Business Analyst",
+      "Designer",
+      "Marketer",
+      "Executive",
+      "Unknown"
+    ],
+    "WorkArtifact": [
+      "Code",
+      "PRD",
+      "BRD",
+      "PPT",
+      "Research Report",
+      "Strategy Memo",
+      "Competitive Analysis",
+      "Technical Design",
+      "Data Analysis",
+      "Unknown"
+    ],
+    "WorkflowId": [
+      "slide_deck",
+      "prd_generation",
+      "debugging_bug_fix",
+      "technical_architecture",
+      "competitive_analysis",
+      "research_report",
+      "brd_generation",
+      "strategy_memo",
+      "code_implementation",
+      "data_analysis_plan"
+    ],
+    "SkillId": [
+      "investor_deck_builder",
+      "prd_builder",
+      "bug_fix_planner"
+    ],
+    "ModuleId": [
+      "assumptions",
+      "sources_required",
+      "competitor_analysis",
+      "market_landscape",
+      "validation_checklist",
+      "risk_analysis",
+      "implementation_plan",
+      "metrics",
+      "user_personas",
+      "investor_framing",
+      "root_cause_analysis",
+      "test_cases",
+      "api_examples",
+      "database_schema",
+      "tradeoff_analysis"
+    ],
+    "SourceMode": [
+      "none",
+      "source_needed_only",
+      "user_uploaded",
+      "web_search"
+    ],
+    "WorkPlanStatus": [
+      "draft",
+      "approved",
+      "generated"
+    ]
+  },
+  "apiEnvelope": {
+    "success": {
+      "ok": true,
+      "data": "T",
+      "requestId": "string"
+    },
+    "error": {
+      "ok": false,
+      "error": {
+        "code": "string",
+        "message": "string",
+        "details": "unknown"
+      },
+      "requestId": "string"
+    }
+  },
+  "apiContracts": {
+    "analyzePrompt": {
+      "method": "POST",
+      "path": "/api/work-mode/analyze",
+      "request": {
+        "conversationId": "string",
+        "mode": "work",
+        "prompt": "string"
+      },
+      "responseData": {
+        "analysisId": "string",
+        "conversationId": "string",
+        "detectedRole": "WorkRole",
+        "detectedArtifact": "WorkArtifact",
+        "recommendedWorkflowId": "WorkflowId",
+        "recommendedSkillId": "SkillId",
+        "confidence": "number",
+        "reason": "string",
+        "recommendedModuleIds": ["ModuleId"],
+        "sourceMode": "SourceMode",
+        "skillCandidates": [
+          {
+            "skillId": "SkillId",
+            "score": "number",
+            "matchedSignals": ["string"]
+          }
+        ],
+        "questionsForUser": ["string"]
+      }
+    },
+    "listSkills": {
+      "method": "GET",
+      "path": "/api/work-mode/skills",
+      "responseData": {
+        "skills": [
+          {
+            "id": "SkillId",
+            "label": "string",
+            "description": "string",
+            "workflowId": "WorkflowId",
+            "supportedRoles": ["WorkRole"],
+            "supportedArtifacts": ["WorkArtifact"],
+            "defaultModuleIds": ["ModuleId"],
+            "optionalModuleIds": ["ModuleId"]
+          }
+        ]
+      }
+    },
+    "createWorkPlan": {
+      "method": "POST",
+      "path": "/api/work-mode/work-plans",
+      "request": {
+        "analysisId": "string",
+        "roleOverride": "WorkRole | null",
+        "artifactOverride": "WorkArtifact | null",
+        "workflowOverride": "WorkflowId | null",
+        "skillOverride": "SkillId | null",
+        "selectedModuleIds": ["ModuleId"],
+        "sourceMode": "SourceMode"
+      },
+      "responseData": "WorkPlanRecord"
+    },
+    "updateWorkPlan": {
+      "method": "PATCH",
+      "path": "/api/work-mode/work-plans/:id",
+      "request": {
+        "version": "number",
+        "plan": "WorkPlan"
+      },
+      "responseData": "WorkPlanRecord"
+    },
+    "approveWorkPlan": {
+      "method": "POST",
+      "path": "/api/work-mode/work-plans/:id/approve",
+      "request": {
+        "version": "number"
+      },
+      "responseData": "WorkPlanRecord"
+    },
+    "generateAnswer": {
+      "method": "POST",
+      "path": "/api/work-mode/work-plans/:id/generate",
+      "request": {
+        "answerFormat": "markdown",
+        "stream": false
+      },
+      "responseData": {
+        "answerId": "string",
+        "workPlanId": "string",
+        "answer": "string",
+        "validation": "ValidationResult"
+      }
+    }
+  },
+  "analyticsEvents": [
+    "workmode_prompt_submitted",
+    "analysis_started",
+    "analysis_completed",
+    "role_override_changed",
+    "artifact_override_changed",
+    "skill_changed",
+    "module_toggled",
+    "source_mode_changed",
+    "workplan_created",
+    "workplan_section_added",
+    "workplan_section_removed",
+    "workplan_section_reordered",
+    "workplan_section_edited",
+    "workplan_autosave_started",
+    "workplan_autosave_completed",
+    "workplan_autosave_failed",
+    "workplan_approved",
+    "generation_started",
+    "generation_cancelled",
+    "generation_completed",
+    "generation_failed",
+    "validation_completed"
+  ],
+  "globalClickActions": {
+    "submitPrompt": "Analyze prompt when mode is Work; otherwise append normal chat message.",
+    "changeMode": "Update selected mode; if leaving Work Mode with unsaved draft, ask for confirmation.",
+    "retryApiCall": "Repeat last failed API call with same payload when safe.",
+    "cancelGeneration": "Abort active request or close SSE stream.",
+    "copyAnswer": "Copy final answer markdown to clipboard.",
+    "startNewChat": "If unsaved draft exists, ask for confirmation before clearing state."
+  }
+}

@@ -1,0 +1,101 @@
+{
+  "id": "app_shell",
+  "name": "App Shell",
+  "route": "/",
+  "purpose": "Claude-like workspace shell that hosts Work Mode and other modes.",
+  "initialState": "idle",
+  "layout": {
+    "desktop": [
+      "left_sidebar",
+      "main_header",
+      "conversation_or_work_area",
+      "prompt_composer"
+    ],
+    "mobile": [
+      "collapsed_sidebar_button",
+      "main_header",
+      "conversation_or_work_area",
+      "prompt_composer"
+    ]
+  },
+  "components": [
+    {
+      "id": "sidebar",
+      "elements": [
+        "app_name",
+        "new_chat_button",
+        "conversation_list_placeholder",
+        "settings_button"
+      ]
+    },
+    {
+      "id": "main_header",
+      "elements": [
+        "mode_selector",
+        "backend_status_indicator",
+        "current_conversation_title"
+      ]
+    },
+    {
+      "id": "mode_selector",
+      "options": ["Low", "Medium", "High", "Max", "Thinking", "Work"],
+      "default": "Work"
+    }
+  ],
+  "clickActions": [
+    {
+      "id": "click_new_chat",
+      "target": "new_chat_button",
+      "preconditions": [],
+      "action": "resetConversation",
+      "confirmation": {
+        "showWhen": "workPlanDirty === true || generationInProgress === true",
+        "message": "Start a new chat? Unsaved Work Plan edits may be lost."
+      },
+      "nextState": "idle"
+    },
+    {
+      "id": "select_work_mode",
+      "target": "mode_selector.Work",
+      "action": "setMode",
+      "payload": { "mode": "work" },
+      "nextState": "idle"
+    },
+    {
+      "id": "select_non_work_mode",
+      "target": "mode_selector.Low|Medium|High|Max|Thinking",
+      "action": "setMode",
+      "confirmation": {
+        "showWhen": "workPlanDirty === true",
+        "message": "Leave Work Mode? Your draft will stay in this conversation but final generation is paused."
+      },
+      "nextState": "idle"
+    },
+    {
+      "id": "open_settings",
+      "target": "settings_button",
+      "action": "openSettingsPanel",
+      "nextScreen": "settings_and_source_modes"
+    }
+  ],
+  "keyboardActions": [
+    {
+      "keys": ["Ctrl+K"],
+      "action": "focusPromptComposer"
+    },
+    {
+      "keys": ["Escape"],
+      "action": "closeOpenPanelOrCancelPendingAction"
+    }
+  ],
+  "edgeCases": [
+    {
+      "case": "backend_unavailable",
+      "behavior": "Show backend status as offline but keep frontend editing available when possible."
+    },
+    {
+      "case": "mobile_sidebar_open_with_editor",
+      "behavior": "Sidebar overlays content and must not cover prompt composer permanently."
+    }
+  ]
+}

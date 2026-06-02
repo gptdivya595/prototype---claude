@@ -1,0 +1,194 @@
+{
+  "version": "0.1.0",
+  "purpose": "Registry of frontend actions, backend actions, side effects, and event tracking.",
+  "frontendActions": [
+    {
+      "id": "submitPrompt",
+      "screen": "empty_prompt",
+      "trigger": "click submit or Enter; Shift+Enter inserts a newline",
+      "preconditions": ["mode === 'work'", "prompt is valid"],
+      "api": "POST /api/work-mode/analyze",
+      "nextState": "analyzing",
+      "analyticsEvent": "workmode_prompt_submitted"
+    },
+    {
+      "id": "cancelAnalysis",
+      "screen": "analyzing_prompt",
+      "trigger": "click cancel",
+      "effect": "Abort analyze request",
+      "nextState": "typing_prompt"
+    },
+    {
+      "id": "changeRoleOverride",
+      "screen": "detection_summary",
+      "trigger": "select role",
+      "effect": "Set roleOverride",
+      "analyticsEvent": "role_override_changed"
+    },
+    {
+      "id": "changeArtifactOverride",
+      "screen": "detection_summary",
+      "trigger": "select artifact",
+      "effect": "Set artifactOverride and recompute compatible workflows",
+      "analyticsEvent": "artifact_override_changed"
+    },
+    {
+      "id": "changeSkill",
+      "screen": "skill_and_suggestions",
+      "trigger": "select skill card",
+      "effect": "Set selectedSkillId, update workflow, recompute module defaults",
+      "analyticsEvent": "skill_changed"
+    },
+    {
+      "id": "toggleModule",
+      "screen": "skill_and_suggestions",
+      "trigger": "click module checkbox",
+      "effect": "Toggle selectedModuleIds and mark manual change",
+      "analyticsEvent": "module_toggled"
+    },
+    {
+      "id": "changeSourceMode",
+      "screen": "skill_and_suggestions",
+      "trigger": "click source mode",
+      "effect": "Set sourceMode",
+      "analyticsEvent": "source_mode_changed"
+    },
+    {
+      "id": "createWorkPlan",
+      "screen": "skill_and_suggestions",
+      "trigger": "click Create Work Plan",
+      "api": "POST /api/work-mode/work-plans",
+      "nextState": "editing_plan",
+      "analyticsEvent": "workplan_created"
+    },
+    {
+      "id": "editWorkPlanField",
+      "screen": "work_plan_editor",
+      "trigger": "typing or section action",
+      "effect": "Update local WorkPlanRecord.plan, mark dirty, schedule autosave",
+      "api": "PATCH /api/work-mode/work-plans/:id",
+      "analyticsEvent": "workplan_section_edited"
+    },
+    {
+      "id": "approveWorkPlan",
+      "screen": "approval_bar",
+      "trigger": "click Approve Work Plan",
+      "api": "POST /api/work-mode/work-plans/:id/approve",
+      "nextState": "approved",
+      "analyticsEvent": "workplan_approved"
+    },
+    {
+      "id": "generateAnswer",
+      "screen": "approval_bar",
+      "trigger": "click Generate answer",
+      "api": "POST /api/work-mode/work-plans/:id/generate",
+      "nextState": "generating",
+      "analyticsEvent": "generation_started"
+    },
+    {
+      "id": "cancelGeneration",
+      "screen": "generation_progress",
+      "trigger": "click Cancel",
+      "effect": "AbortController.abort() or close SSE connection",
+      "nextState": "generation_cancelled",
+      "analyticsEvent": "generation_cancelled"
+    },
+    {
+      "id": "copyAnswer",
+      "screen": "answer_and_validation",
+      "trigger": "click Copy",
+      "effect": "Copy answer markdown to clipboard"
+    },
+    {
+      "id": "retryFailedAction",
+      "screen": "errors_and_recovery",
+      "trigger": "click Retry",
+      "effect": "Replay last safe request"
+    }
+  ],
+  "backendActions": [
+    {
+      "id": "normalizePrompt",
+      "service": "PromptNormalizer",
+      "input": "prompt",
+      "output": "normalizedPrompt, tokens, explicit hints"
+    },
+    {
+      "id": "detectPromptDeterministically",
+      "service": "DeterministicDetector",
+      "input": "normalizedPrompt",
+      "output": "roleCandidates, artifactCandidates, moduleCandidates, sourceMode"
+    },
+    {
+      "id": "classifyWithLlm",
+      "service": "OpenAIClassifier",
+      "optional": true,
+      "input": "prompt, deterministicCandidates, allowed registries",
+      "output": "PromptAnalysis"
+    },
+    {
+      "id": "pickWorkflow",
+      "service": "WorkflowPicker",
+      "input": "PromptAnalysis candidates",
+      "output": "recommendedWorkflowId, recommendedSkillId"
+    },
+    {
+      "id": "saveAnalysis",
+      "service": "WorkPlanStore",
+      "input": "PromptAnalysis",
+      "output": "analysisId"
+    },
+    {
+      "id": "buildWorkPlan",
+      "service": "WorkPlanBuilder",
+      "input": "analysis, selected modules, source mode, skill",
+      "output": "WorkPlanRecord"
+    },
+    {
+      "id": "autosaveWorkPlan",
+      "service": "WorkPlanStore",
+      "input": "version, WorkPlan",
+      "output": "updated WorkPlanRecord"
+    },
+    {
+      "id": "approveWorkPlan",
+      "service": "WorkPlanStore",
+      "input": "workPlanId, version",
+      "output": "approved WorkPlanRecord"
+    },
+    {
+      "id": "generateAnswer",
+      "service": "AnswerGenerator",
+      "input": "approvedPlan",
+      "output": "answer markdown"
+    },
+    {
+      "id": "validateAnswer",
+      "service": "AnswerValidator",
+      "input": "approvedPlan, answer",
+      "output": "ValidationResult"
+    }
+  ],
+  "actionRules": [
+    {
+      "rule": "no_generation_without_approval",
+      "enforcedBy": ["frontend", "backend"],
+      "behavior": "Generate button disabled on frontend; backend returns 409 if not approved."
+    },
+    {
+      "rule": "edit_resets_approval",
+      "enforcedBy": ["frontend", "backend"],
+      "behavior": "Any edit after approval returns plan to draft."
+    },
+    {
+      "rule": "stale_version_rejected",
+      "enforcedBy": ["backend"],
+      "behavior": "PATCH returns 409 when client version is stale."
+    },
+    {
+      "rule": "openai_key_backend_only",
+      "enforcedBy": ["deployment", "backend"],
+      "behavior": "Frontend has only VITE_WORK_MODE_API_BASE."
+    }
+  ]
+}

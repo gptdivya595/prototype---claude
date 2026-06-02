@@ -1,0 +1,52 @@
+{
+  "name": "claude-professional-mode-mvp",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "dev:server": "tsx backend/index.ts",
+    "dev:all": "concurrently \"npm run dev\" \"npm run dev:server\"",
+    "start:server": "tsx backend/index.ts",
+    "typecheck:server": "tsc -p tsconfig.server.json",
+    "smoke:server": "node scripts/smoke-work-mode.mjs",
+    "deploy:check": "npm run test:server && npm run typecheck:server && npm run build",
+    "test:detector": "tsx backend/tests/detectorFixtures.ts",
+    "test:registry": "tsx backend/tests/registryConsistency.ts",
+    "test:work-plans": "tsx backend/tests/workPlanFixtures.ts",
+    "test:llm-schemas": "tsx backend/tests/llmSchemaFixtures.ts",
+    "test:llm-fallback": "tsx backend/tests/llmFallbackFixtures.ts",
+    "test:lifecycle": "tsx backend/tests/lifecycleFixtures.ts",
+    "test:server": "npm run test:detector && npm run test:registry && npm run test:work-plans && npm run test:llm-schemas && npm run test:llm-fallback && npm run test:lifecycle",
+    "build": "tsc && vite build",
+    "preview": "vite preview --host 127.0.0.1"
+  },
+  "dependencies": {
+    "@vitejs/plugin-react": "^5.1.1",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "lucide-react": "^0.562.0",
+    "openai": "^6.41.0",
+    "react": "^19.2.1",
+    "react-dom": "^19.2.1",
+    "tsx": "^4.22.4",
+    "typescript": "^5.9.3",
+    "vite": "^7.2.4",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.60.0",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/react": "^19.2.16",
+    "@types/react-dom": "^19.2.3",
+    "autoprefixer": "^10.4.22",
+    "concurrently": "^10.0.3",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^3.4.18"
+  }
+}

@@ -1,0 +1,66 @@
+{
+  "id": "settings_and_source_modes",
+  "name": "Settings And Source Modes",
+  "purpose": "Show backend connectivity, source mode availability, feature flags, and demo protection state.",
+  "visibleComponents": [
+    "backend_status",
+    "source_mode_capabilities",
+    "feature_flag_status",
+    "demo_token_notice",
+    "close_button"
+  ],
+  "settings": [
+    {
+      "id": "backendStatus",
+      "label": "Backend status",
+      "values": ["online", "offline", "unknown"]
+    },
+    {
+      "id": "sourceModes",
+      "label": "Source modes",
+      "values": {
+        "none": "enabled",
+        "source_needed_only": "enabled",
+        "user_uploaded": "disabled_for_mvp",
+        "web_search": "disabled_for_mvp"
+      }
+    },
+    {
+      "id": "generationTransport",
+      "label": "Generation transport",
+      "values": ["http", "sse_optional", "websocket_deferred"]
+    },
+    {
+      "id": "openAiKeyVisibility",
+      "label": "OpenAI API key",
+      "value": "backend_only_never_shown"
+    }
+  ],
+  "clickActions": [
+    {
+      "id": "check_backend_health",
+      "target": "refresh_backend_status_button",
+      "action": "callApi",
+      "api": "GET /api/work-mode/health"
+    },
+    {
+      "id": "close_settings",
+      "target": "close_button",
+      "action": "closePanel"
+    }
+  ],
+  "rules": [
+    {
+      "id": "web_search_disabled",
+      "behavior": "If selected elsewhere, convert to source_needed_only or block with explanation."
+    },
+    {
+      "id": "openai_key_not_visible",
+      "behavior": "Never display OPENAI_API_KEY or partial key in UI."
+    },
+    {
+      "id": "demo_token",
+      "behavior": "If backend requires demo token, frontend stores only user-provided demo token in local session storage if needed."
+    }
+  ]
+}

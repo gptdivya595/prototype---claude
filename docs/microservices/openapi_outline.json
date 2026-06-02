@@ -1,0 +1,188 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Work Mode API",
+    "version": "0.1.0",
+    "description": "Prototype API outline for Work Mode."
+  },
+  "servers": [
+    {
+      "url": "http://127.0.0.1:8787/api/work-mode",
+      "description": "Local development"
+    }
+  ],
+  "paths": {
+    "/health": {
+      "get": {
+        "summary": "Health check",
+        "responses": {
+          "200": {
+            "description": "Service health"
+          }
+        }
+      }
+    },
+    "/skills": {
+      "get": {
+        "summary": "List Work Mode skills",
+        "responses": {
+          "200": {
+            "description": "Skill catalog"
+          }
+        }
+      }
+    },
+    "/analyze": {
+      "post": {
+        "summary": "Analyze prompt",
+        "responses": {
+          "200": {
+            "description": "Prompt analysis"
+          },
+          "400": {
+            "description": "Invalid prompt"
+          },
+          "429": {
+            "description": "Rate limited"
+          }
+        }
+      }
+    },
+    "/work-plans": {
+      "post": {
+        "summary": "Create Work Plan",
+        "responses": {
+          "201": {
+            "description": "Draft WorkPlanRecord"
+          },
+          "404": {
+            "description": "Analysis not found"
+          },
+          "422": {
+            "description": "Invalid module/source/skill selection"
+          }
+        }
+      }
+    },
+    "/work-plans/{id}": {
+      "get": {
+        "summary": "Get Work Plan",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "WorkPlanRecord"
+          },
+          "404": {
+            "description": "Work Plan not found"
+          }
+        }
+      },
+      "patch": {
+        "summary": "Update Work Plan",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Updated WorkPlanRecord"
+          },
+          "409": {
+            "description": "Stale Work Plan version"
+          },
+          "422": {
+            "description": "Invalid Work Plan"
+          }
+        }
+      }
+    },
+    "/work-plans/{id}/approve": {
+      "post": {
+        "summary": "Approve Work Plan",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Approved WorkPlanRecord"
+          },
+          "409": {
+            "description": "Stale version or invalid status"
+          },
+          "422": {
+            "description": "Approval validation failed"
+          }
+        }
+      }
+    },
+    "/work-plans/{id}/generate": {
+      "post": {
+        "summary": "Generate final answer",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Generated answer and validation"
+          },
+          "409": {
+            "description": "Work Plan is not approved"
+          },
+          "500": {
+            "description": "Generation failed"
+          }
+        }
+      }
+    },
+    "/work-plans/{id}/generate-stream": {
+      "post": {
+        "summary": "Generate final answer with SSE",
+        "description": "Optional MVP upgrade. Use Server-Sent Events, not WebSocket.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "SSE event stream"
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,109 @@
+{
+  "version": "0.1.0",
+  "decision": {
+    "mvp": "http",
+    "optionalUpgrade": "sse",
+    "webSocket": "not_for_mvp",
+    "phase11Implementation": "HTTP JSON generation with frontend AbortController; backend checks disconnect before persisting generated output."
+  },
+  "httpRequestResponse": {
+    "useFor": [
+      "health",
+      "skills",
+      "analyze",
+      "create work plan",
+      "patch/autosave",
+      "approve",
+      "generate answer"
+    ],
+    "pros": [
+      "Simple to implement",
+      "Easy to debug",
+      "Works well on Vercel + Render",
+      "Enough for first prototype"
+    ],
+    "cons": [
+      "No token-by-token answer display",
+      "Long generation feels less interactive"
+    ]
+  },
+  "sse": {
+    "useWhen": [
+      "Answer generation feels slow",
+      "User should see answer stream as it is generated",
+      "One-way server-to-client progress is enough"
+    ],
+    "endpoint": "POST /api/work-mode/work-plans/:id/generate-stream",
+    "events": [
+      {
+        "event": "generation.started",
+        "payload": {
+          "answerId": "string",
+          "workPlanId": "string"
+        }
+      },
+      {
+        "event": "generation.delta",
+        "payload": {
+          "answerId": "string",
+          "delta": "string"
+        }
+      },
+      {
+        "event": "generation.completed",
+        "payload": {
+          "answerId": "string",
+          "answer": "string"
+        }
+      },
+      {
+        "event": "generation.validation_started",
+        "payload": {
+          "answerId": "string"
+        }
+      },
+      {
+        "event": "generation.validation_completed",
+        "payload": {
+          "answerId": "string",
+          "validation": "ValidationResult"
+        }
+      },
+      {
+        "event": "generation.error",
+        "payload": {
+          "answerId": "string",
+          "code": "string",
+          "message": "string"
+        }
+      }
+    ],
+    "cancelBehavior": "Frontend closes stream. Backend should stop work when possible and not mark plan generated unless completed.",
+    "fallback": "Use normal /generate endpoint if SSE fails."
+  },
+  "webSocket": {
+    "useInMvp": false,
+    "addOnlyIf": [
+      "Multiple users edit the same Work Plan",
+      "Live cursors or presence are needed",
+      "Client must send control messages while generation/tools are running",
+      "The product needs realtime workspace events"
+    ],
+    "notNeededFor": [
+      "Prompt analysis",
+      "Skill fetching",
+      "Work Plan autosave",
+      "Approval",
+      "Basic generation",
+      "One-way streaming"
+    ],
+    "futureEvents": [
+      "presence.joined",
+      "presence.left",
+      "workplan.remote_patch",
+      "workplan.locked_section",
+      "generation.control.cancel",
+      "tool.requires_user_input"
+    ]
+  }
+}
