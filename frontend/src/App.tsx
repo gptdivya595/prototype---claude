@@ -1293,7 +1293,7 @@ type BackendCandidate = {
 
 type BackendPromptAnalysis = {
   analysisId: string;
-  prompt: string;
+  prompt?: string;
   detectedRole: string;
   detectedArtifact: string;
   recommendedWorkflowId: WorkflowId;
@@ -1410,10 +1410,10 @@ function isWorkflowId(value: string): value is WorkflowId {
   return workflowOptions.some((workflow) => workflow.id === value);
 }
 
-function mapPromptAnalysis(analysis: BackendPromptAnalysis): PromptAnalysis {
+function mapPromptAnalysis(analysis: BackendPromptAnalysis, submittedPrompt: string): PromptAnalysis {
   return {
     id: analysis.analysisId,
-    prompt: analysis.prompt,
+    prompt: analysis.prompt?.trim() || submittedPrompt,
     detectedRole: analysis.detectedRole,
     detectedArtifact: analysis.detectedArtifact,
     recommendedWorkflowId: analysis.recommendedWorkflowId,
@@ -1566,7 +1566,7 @@ const workModeClient: WorkModeClient = {
         prompt,
       }),
     });
-    return mapPromptAnalysis(analysis);
+    return mapPromptAnalysis(analysis, prompt);
   },
   async createWorkPlan(input) {
     void input.prompt;
@@ -2036,7 +2036,7 @@ function TopChrome() {
     <header className="pointer-events-none fixed left-11 right-0 top-0 z-20 flex h-12 items-center justify-center bg-[#faf9f5]/90 backdrop-blur">
       <div className="pointer-events-auto rounded-lg bg-[#f1f0eb] px-3 py-2 text-sm text-[#756f66]">
         Free plan <span className="mx-1 text-[#aaa59b]">·</span>
-        <button type="button" className="underline underline-offset-2 hover:text-[#2f2f2b]">
+        <button type="button" className="inline-flex min-h-8 items-center underline underline-offset-2 hover:text-[#2f2f2b]">
           Upgrade
         </button>
       </div>
@@ -2248,7 +2248,7 @@ function PromptComposer({
           <div className="flex flex-col gap-4">
             <button
               type="button"
-              className="grid h-8 w-8 place-items-center rounded-md text-[#0f172a] hover:bg-[#f3f2ed]"
+              className="grid h-9 w-9 shrink-0 place-items-center rounded-md text-[#0f172a] hover:bg-[#f3f2ed] sm:h-8 sm:w-8"
               aria-label="Attach context"
             >
               <Plus size={20} aria-hidden="true" />
@@ -2263,12 +2263,12 @@ function PromptComposer({
             </div>
           </div>
 
-          <div className="flex flex-col items-start gap-4 sm:items-end">
-            <div className="flex items-center gap-4">
-              <div className="relative">
+          <div className="flex w-full flex-col items-start gap-4 sm:w-auto sm:items-end">
+            <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:gap-4">
+              <div className="relative max-w-full">
                 <button
                   type="button"
-                  className="rounded-lg bg-[#f5f3ee] px-3 py-2 text-sm font-medium text-[#2c2924] hover:bg-[#eeece5]"
+                  className="inline-flex max-w-full items-center rounded-lg bg-[#f5f3ee] px-3 py-2 text-sm font-medium text-[#2c2924] hover:bg-[#eeece5]"
                   aria-expanded={modelMenuOpen}
                   aria-haspopup="menu"
                   onClick={() => setModelMenuOpen((current) => !current)}
@@ -2280,16 +2280,24 @@ function PromptComposer({
                   <ModelMenu mode={mode} onModeChange={onModeChange} onClose={() => setModelMenuOpen(false)} />
                 ) : null}
               </div>
-              <button type="button" className="grid h-8 w-8 place-items-center rounded-md text-[#1f1f1d] hover:bg-[#f3f2ed]" aria-label="Voice input">
+              <button
+                type="button"
+                className="grid h-9 w-9 shrink-0 place-items-center rounded-md text-[#1f1f1d] hover:bg-[#f3f2ed] sm:h-8 sm:w-8"
+                aria-label="Voice input"
+              >
                 <Mic size={18} aria-hidden="true" />
               </button>
-              <button type="button" className="grid h-8 w-8 place-items-center rounded-md text-[#1f1f1d] hover:bg-[#f3f2ed]" aria-label="Audio controls">
+              <button
+                type="button"
+                className="grid h-9 w-9 shrink-0 place-items-center rounded-md text-[#1f1f1d] hover:bg-[#f3f2ed] sm:h-8 sm:w-8"
+                aria-label="Audio controls"
+              >
                 <Volume2 size={18} aria-hidden="true" />
               </button>
               <button
                 type="submit"
                 disabled={!canSubmit}
-                className="grid h-8 w-8 place-items-center rounded-md bg-[#2f2f2b] text-white hover:bg-[#1f1f1d] disabled:cursor-not-allowed disabled:bg-transparent disabled:text-transparent"
+                className="grid h-9 w-9 shrink-0 place-items-center rounded-md bg-[#2f2f2b] text-white hover:bg-[#1f1f1d] disabled:cursor-not-allowed disabled:bg-transparent disabled:text-transparent sm:h-8 sm:w-8"
                 aria-label="Send prompt"
               >
                 <Send size={16} aria-hidden="true" />
@@ -2323,7 +2331,7 @@ function ModelMenu({
 
   return (
     <div
-      className="absolute bottom-11 right-0 z-50 w-[350px] max-w-[calc(100vw-72px)] rounded-xl border border-[#d9d5ca] bg-white p-2 text-sm shadow-[0_18px_52px_rgba(36,31,24,0.18)]"
+      className="fixed bottom-24 left-14 right-4 z-50 max-h-[min(560px,calc(100vh-8rem))] overflow-y-auto rounded-xl border border-[#d9d5ca] bg-white p-2 text-sm shadow-[0_18px_52px_rgba(36,31,24,0.18)] sm:absolute sm:bottom-11 sm:left-auto sm:right-0 sm:max-h-none sm:w-[350px] sm:max-w-[calc(100vw-72px)] sm:overflow-visible"
       role="menu"
       aria-label="Model and effort menu"
     >
@@ -2394,7 +2402,7 @@ function MenuRow({
         <p className="truncate text-[#817b72]">{subtitle}</p>
       </div>
       {action ? (
-        <button type="button" className="rounded-full border border-[#d7d3c8] px-2 py-1 text-xs text-[#0b65b9]">
+        <button type="button" className="inline-flex min-h-8 items-center rounded-full border border-[#d7d3c8] px-2 py-1 text-xs text-[#0b65b9]">
           {action}
         </button>
       ) : null}
@@ -3319,7 +3327,7 @@ function EditableTextList({
         <p className="text-xs font-medium uppercase text-[#817b72]">{title}</p>
         <button
           type="button"
-          className="rounded-lg border border-[#d9d5ca] bg-white px-2 py-1 text-xs font-semibold hover:bg-[#f2f0ea]"
+          className="min-h-9 rounded-lg border border-[#d9d5ca] bg-white px-3 py-2 text-xs font-semibold hover:bg-[#f2f0ea]"
           onClick={() => onChange([...items, ""])}
         >
           {addLabel}
@@ -3336,7 +3344,7 @@ function EditableTextList({
             />
             <button
               type="button"
-              className="rounded-lg border border-[#d9d5ca] bg-white px-2 py-2 text-sm hover:bg-[#f2f0ea]"
+              className="min-h-10 rounded-lg border border-[#d9d5ca] bg-white px-3 py-2 text-sm hover:bg-[#f2f0ea]"
               onClick={() => removeItem(index)}
             >
               Remove
@@ -3378,7 +3386,7 @@ function WorkPlanSectionsEditor({
         <p className="text-xs font-medium uppercase text-[#817b72]">Roadmap sections</p>
         <button
           type="button"
-          className="rounded-lg border border-[#d9d5ca] bg-white px-3 py-2 text-xs font-semibold hover:bg-[#f2f0ea]"
+          className="min-h-9 rounded-lg border border-[#d9d5ca] bg-white px-3 py-2 text-xs font-semibold hover:bg-[#f2f0ea]"
           onClick={() => onChange([...sections, createSection("New section", "Describe what this section should cover.", false)])}
         >
           Add section
@@ -3430,7 +3438,7 @@ function WorkPlanSectionCard({
           <button
             type="button"
             disabled={isFirst}
-            className="rounded-lg border border-[#d9d5ca] bg-white px-2 py-1 text-xs disabled:cursor-not-allowed disabled:opacity-45"
+            className="min-h-9 rounded-lg border border-[#d9d5ca] bg-white px-3 py-2 text-xs disabled:cursor-not-allowed disabled:opacity-45"
             onClick={() => onMove(index, -1)}
           >
             Move up
@@ -3438,7 +3446,7 @@ function WorkPlanSectionCard({
           <button
             type="button"
             disabled={isLast}
-            className="rounded-lg border border-[#d9d5ca] bg-white px-2 py-1 text-xs disabled:cursor-not-allowed disabled:opacity-45"
+            className="min-h-9 rounded-lg border border-[#d9d5ca] bg-white px-3 py-2 text-xs disabled:cursor-not-allowed disabled:opacity-45"
             onClick={() => onMove(index, 1)}
           >
             Move down
@@ -3446,7 +3454,7 @@ function WorkPlanSectionCard({
           <button
             type="button"
             disabled={section.required}
-            className="rounded-lg border border-[#d9d5ca] bg-white px-2 py-1 text-xs disabled:cursor-not-allowed disabled:opacity-45"
+            className="min-h-9 rounded-lg border border-[#d9d5ca] bg-white px-3 py-2 text-xs disabled:cursor-not-allowed disabled:opacity-45"
             title={section.required ? "Required sections cannot be removed in the MVP." : "Remove section"}
             onClick={() => onRemove(section.id)}
           >
