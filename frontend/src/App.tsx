@@ -25,7 +25,7 @@ import {
   Trash2,
   Volume2,
 } from "lucide-react";
-import { type FormEvent, type ReactNode, useEffect, useMemo, useRef, useState } from "react";
+import { type ButtonHTMLAttributes, type FormEvent, type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 
 type Mode = "low" | "medium" | "high" | "max" | "thinking" | "work";
 type WorkModeUiState =
@@ -226,6 +226,8 @@ type GenerationState = {
   validation: ValidationResult | null;
   errorMessage?: string;
 };
+
+type PendingAction = "analyze" | "createWorkPlan" | "approveWorkPlan" | "generateAnswer" | null;
 
 type WorkModeErrorCode =
   | "invalid_prompt"
@@ -1637,6 +1639,7 @@ function App() {
     validation: null,
   });
   const [workModeError, setWorkModeError] = useState<WorkModeError | null>(null);
+  const [pendingAction, setPendingAction] = useState<PendingAction>(null);
   const generationAbortRef = useRef<AbortController | null>(null);
 
   const selectedMode = useMemo(() => modes.find((item) => item.id === mode) ?? modes[0], [mode]);
@@ -1650,6 +1653,8 @@ function App() {
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+
+    if (pendingAction) return;
 
     const cleanPrompt = prompt.trim();
     if (!cleanPrompt) return;
@@ -1683,6 +1688,7 @@ function App() {
       });
       setWorkModeError(null);
       setWorkModeUiState("analyzing");
+      setPendingAction("analyze");
 
       try {
         const analysis = await workModeClient.analyzePrompt(cleanPrompt);
@@ -1702,6 +1708,8 @@ function App() {
       } catch (error) {
         setWorkModeError(errorToWorkModeError(error, "Analysis failed. Try submitting the prompt again."));
         setWorkModeUiState("error");
+      } finally {
+        setPendingAction((current) => (current === "analyze" ? null : current));
       }
       return;
     }
@@ -1732,10 +1740,12 @@ function App() {
   };
 
   const handleCreateWorkPlan = async () => {
+    if (pendingAction) return;
     if (!suggestionState || !workModeDraft.analysis) return;
     const payload = createWorkPlanPayload(workModeDraft, suggestionState);
     if (!payload) return;
     const skill = getSkillById(payload.skillOverride ?? suggestionState.selectedSkillId);
+    setPendingAction("createWorkPlan");
 
     try {
       const record = await workModeClient.createWorkPlan({
@@ -1759,6 +1769,8 @@ function App() {
     } catch (error) {
       setWorkModeError(errorToWorkModeError(error, "Could not create the Work Plan."));
       setWorkModeUiState("error");
+    } finally {
+      setPendingAction((current) => (current === "createWorkPlan" ? null : current));
     }
   };
 
@@ -1778,6 +1790,7 @@ function App() {
   };
 
   const handleApproveWorkPlan = async () => {
+    if (pendingAction) return;
     const record = workPlanEditorState.record;
     if (!record) return;
     const validation = validateWorkPlan(record.plan);
@@ -1796,6 +1809,7 @@ function App() {
       return;
     }
 
+    setPendingAction("approveWorkPlan");
     try {
       const approvedRecord = await workModeClient.approveWorkPlan(record);
       const approvedWorkPlan = cloneWorkPlan(approvedRecord.approvedPlan ?? approvedRecord.plan);
@@ -1821,10 +1835,13 @@ function App() {
     } catch (error) {
       setWorkModeError(errorToWorkModeError(error, "Could not approve the Work Plan."));
       setWorkModeUiState("error");
+    } finally {
+      setPendingAction((current) => (current === "approveWorkPlan" ? null : current));
     }
   };
 
   const handleGenerateAnswer = async () => {
+    if (pendingAction) return;
     const approvedWorkPlan = generationState.approvedWorkPlan;
     if (!approvedWorkPlan) {
       setWorkModeError({
@@ -1836,6 +1853,7 @@ function App() {
     }
 
     setWorkModeError(null);
+    setPendingAction("generateAnswer");
     setGenerationState((current) => ({
       ...current,
       status: "generating",
@@ -1906,12 +1924,14 @@ function App() {
       if (generationAbortRef.current === controller) {
         generationAbortRef.current = null;
       }
+      setPendingAction((current) => (current === "generateAnswer" ? null : current));
     }
   };
 
   const handleCancelGeneration = () => {
     generationAbortRef.current?.abort();
     generationAbortRef.current = null;
+    setPendingAction((current) => (current === "generateAnswer" ? null : current));
     setGenerationState((current) => ({
       ...current,
       status: "cancelled",
@@ -1939,6 +1959,7 @@ function App() {
           generationAbortRef.current?.abort();
           generationAbortRef.current = null;
           setPrompt("");
+          setPendingAction(null);
           setMessages([]);
           setWorkModeDraft({ prompt: "", analysis: null });
           setSuggestionState(null);
@@ -1966,6 +1987,8 @@ function App() {
         <section className="mx-auto flex min-h-screen w-full max-w-5xl flex-col px-4 pb-7 pt-20 sm:px-5">
           {isHome ? (
             <HomeSurface
+              isComposerDisabled={pendingAction !== null}
+              isSubmitting={pendingAction === "analyze"}
               mode={mode}
               onModeChange={setMode}
               onPromptChange={setPrompt}
@@ -1990,6 +2013,7 @@ function App() {
               onSaveWorkPlan={handleSaveWorkPlan}
               onSubmit={handleSubmit}
               onSuggestionChange={setSuggestionState}
+              pendingAction={pendingAction}
               prompt={prompt}
               generationState={generationState}
               resetApprovalAfterEdit={resetApprovalAfterEdit}
@@ -2103,6 +2127,46 @@ function RailButton({
   );
 }
 
+function InlineSpinner({ size = 16 }: { size?: number }) {
+  return <LoaderCircle className="shrink-0 animate-spin" size={size} aria-hidden="true" />;
+}
+
+function ActionButton({
+  children,
+  className,
+  disabled,
+  loading,
+  loadingLabel,
+  type = "button",
+  ...props
+}: ButtonHTMLAttributes<HTMLButtonElement> & {
+  loading?: boolean;
+  loadingLabel?: ReactNode;
+}) {
+  return (
+    <button
+      {...props}
+      type={type}
+      aria-busy={loading || undefined}
+      disabled={disabled || loading}
+      className={[
+        "inline-flex items-center justify-center gap-2",
+        className ?? "",
+        loading ? "cursor-wait" : "",
+      ].join(" ")}
+    >
+      {loading ? (
+        <>
+          <InlineSpinner />
+          {loadingLabel ?? children}
+        </>
+      ) : (
+        children
+      )}
+    </button>
+  );
+}
+
 function TopChrome() {
   return (
     <header className="pointer-events-none fixed left-10 right-0 top-0 z-20 flex h-11 items-center justify-center bg-[#faf9f5]/90 backdrop-blur">
@@ -2131,6 +2195,8 @@ function TopChrome() {
 }
 
 function HomeSurface({
+  isComposerDisabled,
+  isSubmitting,
   mode,
   onModeChange,
   onPromptChange,
@@ -2138,6 +2204,8 @@ function HomeSurface({
   prompt,
   selectedModeLabel,
 }: {
+  isComposerDisabled: boolean;
+  isSubmitting: boolean;
   mode: Mode;
   onModeChange: (mode: Mode) => void;
   onPromptChange: (prompt: string) => void;
@@ -2156,8 +2224,10 @@ function HomeSurface({
 
       <div className="w-full max-w-[664px]">
         <PromptComposer
+          isComposerDisabled={isComposerDisabled}
           mode={mode}
           modeLabel={selectedModeLabel}
+          isSubmitting={isSubmitting}
           onModeChange={onModeChange}
           onPromptChange={onPromptChange}
           onSubmit={onSubmit}
@@ -2187,6 +2257,7 @@ function WorkSurface({
   onSubmit,
   onSuggestionChange,
   onWorkPlanEditorStateChange,
+  pendingAction,
   prompt,
   resetApprovalAfterEdit,
   selectedModeLabel,
@@ -2212,6 +2283,7 @@ function WorkSurface({
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
   onSuggestionChange: (suggestionState: SuggestionState | null) => void;
   onWorkPlanEditorStateChange: (editorState: WorkPlanEditorState) => void;
+  pendingAction: PendingAction;
   prompt: string;
   resetApprovalAfterEdit: () => void;
   selectedModeLabel: string;
@@ -2239,6 +2311,7 @@ function WorkSurface({
           onRetryGeneration={onRetryGeneration}
           onSaveWorkPlan={onSaveWorkPlan}
           onSuggestionChange={onSuggestionChange}
+          pendingAction={pendingAction}
           suggestionState={suggestionState}
           workPlanEditorState={workPlanEditorState}
           onWorkPlanEditorStateChange={onWorkPlanEditorStateChange}
@@ -2251,8 +2324,10 @@ function WorkSurface({
       <div className="mt-auto pt-4">
         <PromptComposer
           compact
+          isComposerDisabled={pendingAction !== null}
           mode={mode}
           modeLabel={selectedModeLabel}
+          isSubmitting={pendingAction === "analyze"}
           onModeChange={onModeChange}
           onPromptChange={onPromptChange}
           onSubmit={onSubmit}
@@ -2281,6 +2356,8 @@ function ClaudeMark() {
 
 function PromptComposer({
   compact,
+  isComposerDisabled,
+  isSubmitting,
   mode,
   modeLabel,
   onModeChange,
@@ -2289,6 +2366,8 @@ function PromptComposer({
   prompt,
 }: {
   compact?: boolean;
+  isComposerDisabled: boolean;
+  isSubmitting: boolean;
   mode: Mode;
   modeLabel: string;
   onModeChange: (mode: Mode) => void;
@@ -2297,7 +2376,7 @@ function PromptComposer({
   prompt: string;
 }) {
   const [modelMenuOpen, setModelMenuOpen] = useState(false);
-  const canSubmit = prompt.trim().length > 0;
+  const canSubmit = prompt.trim().length > 0 && !isSubmitting && !isComposerDisabled;
 
   return (
     <form className="relative" onSubmit={onSubmit}>
@@ -2375,10 +2454,16 @@ function PromptComposer({
               <button
                 type="submit"
                 disabled={!canSubmit}
-                className="grid h-8 w-8 shrink-0 place-items-center rounded-md bg-[#2f2f2b] text-white hover:bg-[#1f1f1d] disabled:cursor-not-allowed disabled:bg-transparent disabled:text-transparent"
-                aria-label="Send prompt"
+                className={[
+                  "grid h-8 w-8 shrink-0 place-items-center rounded-md bg-[#2f2f2b] text-white",
+                  isSubmitting
+                    ? "cursor-wait"
+                    : "hover:bg-[#1f1f1d] disabled:cursor-not-allowed disabled:bg-transparent disabled:text-transparent",
+                ].join(" ")}
+                aria-busy={isSubmitting || undefined}
+                aria-label={isSubmitting ? "Sending prompt" : "Send prompt"}
               >
-                <Send size={15} aria-hidden="true" />
+                {isSubmitting ? <InlineSpinner size={15} /> : <Send size={15} aria-hidden="true" />}
               </button>
             </div>
           </div>
@@ -2533,6 +2618,7 @@ function WorkModePanel({
   onSaveWorkPlan,
   onSuggestionChange,
   onWorkPlanEditorStateChange,
+  pendingAction,
   resetApprovalAfterEdit,
   suggestionState,
   workPlanEditorState,
@@ -2552,6 +2638,7 @@ function WorkModePanel({
   onSaveWorkPlan: (request: UpdateWorkPlanRequest) => Promise<WorkPlanRecord>;
   onSuggestionChange: (suggestionState: SuggestionState | null) => void;
   onWorkPlanEditorStateChange: (editorState: WorkPlanEditorState) => void;
+  pendingAction: PendingAction;
   resetApprovalAfterEdit: () => void;
   suggestionState: SuggestionState | null;
   workPlanEditorState: WorkPlanEditorState;
@@ -2575,6 +2662,7 @@ function WorkModePanel({
     return (
       <SuggestionsPanel
         draft={draft}
+        isCreatingWorkPlan={pendingAction === "createWorkPlan"}
         onCreateWorkPlan={onCreateWorkPlan}
         onDraftChange={onDraftChange}
         onSuggestionChange={onSuggestionChange}
@@ -2588,10 +2676,17 @@ function WorkModePanel({
   ) {
     return (
       <div className="space-y-4">
-        {workModeError ? <WorkModeErrorPanel error={workModeError} onRetry={onRetryGeneration} /> : null}
+        {workModeError ? (
+          <WorkModeErrorPanel
+            error={workModeError}
+            isRetrying={pendingAction === "generateAnswer"}
+            onRetry={onRetryGeneration}
+          />
+        ) : null}
         <WorkPlanEditor
           editorState={workPlanEditorState}
           generationState={generationState}
+          pendingAction={pendingAction}
           onApproveWorkPlan={onApproveWorkPlan}
           onCancelGeneration={onCancelGeneration}
           onEditorStateChange={onWorkPlanEditorStateChange}
@@ -2787,12 +2882,14 @@ function InfoPanel({ children, title }: { children: ReactNode; title: string }) 
 
 function SuggestionsPanel({
   draft,
+  isCreatingWorkPlan,
   onCreateWorkPlan,
   onDraftChange,
   onSuggestionChange,
   suggestionState,
 }: {
   draft: WorkModeDraft;
+  isCreatingWorkPlan: boolean;
   onCreateWorkPlan: () => void;
   onDraftChange: (updates: Partial<WorkModeDraft>) => void;
   onSuggestionChange: (suggestionState: SuggestionState | null) => void;
@@ -2900,15 +2997,17 @@ function SuggestionsPanel({
             <span className="mt-1 block text-xs">No modules selected. Phase 5 will still include required validation internally.</span>
           ) : null}
         </div>
-        <button
+        <ActionButton
           type="button"
           className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#2f2f2b] px-4 py-2 text-sm font-semibold text-white hover:bg-[#1f1f1d]"
           disabled={!draft.analysis || !selectedWorkflow}
+          loading={isCreatingWorkPlan}
+          loadingLabel="Creating..."
           onClick={onCreateWorkPlan}
         >
           Create Work Plan
           <ChevronRight size={16} aria-hidden="true" />
-        </button>
+        </ActionButton>
       </div>
     </Panel>
   );
@@ -3053,6 +3152,7 @@ function WorkPlanEditor({
   onGenerateAnswer,
   onRetryGeneration,
   onSaveWorkPlan,
+  pendingAction,
   resetApprovalAfterEdit,
 }: {
   editorState: WorkPlanEditorState;
@@ -3063,6 +3163,7 @@ function WorkPlanEditor({
   onGenerateAnswer: () => void;
   onRetryGeneration: () => void;
   onSaveWorkPlan: (request: UpdateWorkPlanRequest) => Promise<WorkPlanRecord>;
+  pendingAction: PendingAction;
   resetApprovalAfterEdit: () => void;
 }) {
   const autosaveTimerRef = useRef<number | null>(null);
@@ -3190,6 +3291,7 @@ function WorkPlanEditor({
         onCancelGeneration={onCancelGeneration}
         onGenerateAnswer={onGenerateAnswer}
         onRetryGeneration={onRetryGeneration}
+        pendingAction={pendingAction}
         record={record}
       />
 
@@ -3236,6 +3338,7 @@ function ApprovalBar({
   onCancelGeneration,
   onGenerateAnswer,
   onRetryGeneration,
+  pendingAction,
   record,
 }: {
   editorState: WorkPlanEditorState;
@@ -3244,10 +3347,13 @@ function ApprovalBar({
   onCancelGeneration: () => void;
   onGenerateAnswer: () => void;
   onRetryGeneration: () => void;
+  pendingAction: PendingAction;
   record: WorkPlanRecord;
 }) {
   const approveDisabled = editorState.validationErrors.length > 0 || editorState.autosaveStatus === "saving";
   const generateDisabled = !generationState.approvedWorkPlan || generationState.status === "generating";
+  const isApproving = pendingAction === "approveWorkPlan";
+  const isGenerating = pendingAction === "generateAnswer" || generationState.status === "generating";
 
   return (
     <div className="mt-5 rounded-lg border border-[#e5e1d8] bg-[#faf9f5] p-3">
@@ -3270,37 +3376,51 @@ function ApprovalBar({
             </button>
           ) : null}
           {generationState.status === "cancelled" || generationState.status === "failed" ? (
-            <button
+            <ActionButton
               type="button"
               className="rounded-lg border border-[#d9d5ca] bg-white px-4 py-2 text-sm font-semibold hover:bg-[#f2f0ea]"
+              loading={isGenerating}
+              loadingLabel="Retrying..."
               onClick={onRetryGeneration}
             >
               Retry
-            </button>
+            </ActionButton>
           ) : null}
-          <button
+          <ActionButton
             type="button"
             disabled={approveDisabled}
             className="rounded-lg border border-[#d9d5ca] bg-white px-4 py-2 text-sm font-semibold hover:bg-[#f2f0ea] disabled:cursor-not-allowed disabled:opacity-50"
+            loading={isApproving}
+            loadingLabel="Approving..."
             onClick={onApproveWorkPlan}
           >
             Approve Work Plan
-          </button>
-          <button
+          </ActionButton>
+          <ActionButton
             type="button"
             disabled={generateDisabled}
             className="rounded-lg bg-[#2f2f2b] px-4 py-2 text-sm font-semibold text-white hover:bg-[#1f1f1d] disabled:cursor-not-allowed disabled:bg-[#d8d4ca] disabled:text-[#6d6a63]"
+            loading={isGenerating}
+            loadingLabel="Generating..."
             onClick={onGenerateAnswer}
           >
-            {generationState.status === "generating" ? "Generating..." : "Generate Answer"}
-          </button>
+            Generate Answer
+          </ActionButton>
         </div>
       </div>
     </div>
   );
 }
 
-function WorkModeErrorPanel({ error, onRetry }: { error: WorkModeError; onRetry: () => void }) {
+function WorkModeErrorPanel({
+  error,
+  isRetrying,
+  onRetry,
+}: {
+  error: WorkModeError;
+  isRetrying: boolean;
+  onRetry: () => void;
+}) {
   return (
     <Panel tone={error.recoverable ? "neutral" : "danger"}>
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -3309,13 +3429,15 @@ function WorkModeErrorPanel({ error, onRetry }: { error: WorkModeError; onRetry:
           <p className="mt-1 text-xs text-[#817b72]">Error code: {error.code}</p>
         </div>
         {error.recoverable ? (
-          <button
+          <ActionButton
             type="button"
             className="rounded-lg border border-[#d9d5ca] bg-white px-3 py-2 text-sm font-semibold hover:bg-[#f2f0ea]"
+            loading={isRetrying}
+            loadingLabel="Retrying..."
             onClick={onRetry}
           >
             Retry
-          </button>
+          </ActionButton>
         ) : null}
       </div>
     </Panel>
