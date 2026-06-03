@@ -1,0 +1,332 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Wireframing PPT Slide</title>
+    <style>
+      :root {
+        --orange: #cf7d5e;
+        --blue: #2d58b7;
+        --ink: #111111;
+        --muted: #5d5650;
+        --line: #d8cfc6;
+        --paper: #fffdfa;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        background: #202020;
+      }
+
+      body {
+        display: grid;
+        place-items: center;
+        color: var(--ink);
+        font-family: Georgia, "Times New Roman", serif;
+      }
+
+      .slide {
+        position: relative;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background: #ffffff;
+      }
+
+      .title {
+        position: absolute;
+        top: 38px;
+        left: 0;
+        right: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 16px;
+        font-size: 46px;
+        font-weight: 800;
+        line-height: 1;
+      }
+
+      .burst {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        background: repeating-conic-gradient(var(--orange) 0 9deg, transparent 9deg 18deg);
+      }
+
+      .top-link {
+        position: absolute;
+        top: 48px;
+        right: 270px;
+        color: var(--blue);
+        font-size: 32px;
+        font-style: italic;
+        font-weight: 700;
+        text-decoration: underline;
+      }
+
+      .flow {
+        position: absolute;
+        left: 40px;
+        right: 40px;
+        top: 124px;
+        bottom: 34px;
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        grid-template-rows: 1fr 1fr;
+        gap: 58px 34px;
+      }
+
+      .node {
+        position: relative;
+        border: 4px dashed var(--orange);
+        border-radius: 18px;
+        background: var(--paper);
+        padding: 16px 16px 14px;
+        overflow: visible;
+      }
+
+      .node.step-5 {
+        grid-column: 2;
+      }
+
+      .node.step-6 {
+        grid-column: 3;
+      }
+
+      .node.step-7 {
+        grid-column: 4;
+      }
+
+      .shot {
+        position: relative;
+        height: 230px;
+        overflow: hidden;
+        border-radius: 10px;
+        border: 8px solid #2f3236;
+        border-bottom-width: 22px;
+        background: #f8f7f3;
+        box-shadow: 0 10px 18px rgb(0 0 0 / 16%);
+      }
+
+      .shot img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: top center;
+        display: block;
+      }
+
+      .base {
+        width: 96%;
+        height: 28px;
+        margin: -2px auto 0;
+        border-radius: 0 0 10px 10px;
+        background: linear-gradient(#575b61, #30343a);
+        clip-path: polygon(7% 0, 93% 0, 100% 75%, 96% 100%, 4% 100%, 0 75%);
+      }
+
+      .num {
+        position: absolute;
+        right: -12px;
+        top: 92px;
+        width: 62px;
+        height: 62px;
+        border-radius: 50%;
+        background: var(--orange);
+        color: #ffffff;
+        display: grid;
+        place-items: center;
+        font-family: Arial, sans-serif;
+        font-size: 34px;
+        font-weight: 700;
+        z-index: 5;
+      }
+
+      .label {
+        margin-top: 12px;
+        font-size: 25px;
+        font-weight: 800;
+        line-height: 1.08;
+        text-align: center;
+      }
+
+      .caption {
+        margin-top: 8px;
+        color: var(--muted);
+        font-family: Arial, sans-serif;
+        font-size: 15px;
+        line-height: 1.3;
+        text-align: center;
+      }
+
+      .links {
+        display: flex;
+        justify-content: center;
+        gap: 18px;
+        margin-top: 8px;
+        color: var(--blue);
+        font-size: 18px;
+        font-style: italic;
+        font-weight: 700;
+        text-decoration: underline;
+      }
+
+      .arrow {
+        position: absolute;
+        pointer-events: none;
+        z-index: 20;
+      }
+
+      .arrow svg {
+        width: 100%;
+        height: 100%;
+        overflow: visible;
+      }
+
+      .arrow path,
+      .arrow marker path {
+        stroke: #000000;
+        fill: none;
+        stroke-width: 3.4;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+
+      .a12 {
+        left: calc(25% - 32px);
+        top: 264px;
+        width: 80px;
+        height: 58px;
+      }
+
+      .a23 {
+        left: calc(50% - 32px);
+        top: 264px;
+        width: 80px;
+        height: 58px;
+      }
+
+      .a34 {
+        left: calc(75% - 32px);
+        top: 264px;
+        width: 80px;
+        height: 58px;
+      }
+
+      .a45 {
+        right: 230px;
+        top: 498px;
+        width: 170px;
+        height: 126px;
+      }
+
+      .a56 {
+        left: calc(50% - 32px);
+        top: 730px;
+        width: 80px;
+        height: 58px;
+      }
+
+      .a67 {
+        left: calc(75% - 32px);
+        top: 730px;
+        width: 80px;
+        height: 58px;
+      }
+    </style>
+  </head>
+  <body>
+    <section class="slide" aria-label="Compact wireframing slide">
+      <header class="title"><span class="burst"></span><span>Wireframing</span></header>
+      <a class="top-link">Wireframing</a>
+
+      <main class="flow">
+        <article class="node step-1">
+          <div class="shot"><img src="wireframe-step-01.png" alt="Mode selector wireframe" /></div>
+          <div class="base"></div>
+          <div class="num">1</div>
+          <div class="label">Select Work Mode</div>
+          <p class="caption">User opens the model menu and chooses Work.</p>
+          <div class="links"><span>Prototype</span><span>Readme.md</span></div>
+        </article>
+
+        <article class="node step-2">
+          <div class="shot"><img src="wireframe-step-02.png" alt="Prompt composer wireframe" /></div>
+          <div class="base"></div>
+          <div class="num">2</div>
+          <div class="label">Enter Prompt</div>
+          <p class="caption">User submits the task from the Claude-style composer.</p>
+        </article>
+
+        <article class="node step-3">
+          <div class="shot"><img src="wireframe-step-03.png" alt="Routing review wireframe" /></div>
+          <div class="base"></div>
+          <div class="num">3</div>
+          <div class="label">Review Routing</div>
+          <p class="caption">System shows role, artifact, workflow, and confidence.</p>
+        </article>
+
+        <article class="node step-4">
+          <div class="shot"><img src="wireframe-step-04.png" alt="Skill suggestions wireframe" /></div>
+          <div class="base"></div>
+          <div class="num">4</div>
+          <div class="label">Choose Skill</div>
+          <p class="caption">User confirms skill and workflow recommendations.</p>
+        </article>
+
+        <article class="node step-5">
+          <div class="shot"><img src="wireframe-step-05.png" alt="Module selection wireframe" /></div>
+          <div class="base"></div>
+          <div class="num">5</div>
+          <div class="label">Pick Modules</div>
+          <p class="caption">Recommended modules are preselected and editable.</p>
+        </article>
+
+        <article class="node step-6">
+          <div class="shot"><img src="wireframe-step-06.png" alt="Editable work plan wireframe" /></div>
+          <div class="base"></div>
+          <div class="num">6</div>
+          <div class="label">Edit Work Plan</div>
+          <p class="caption">User adjusts objective, context, assumptions, and sections.</p>
+        </article>
+
+        <article class="node step-7">
+          <div class="shot"><img src="wireframe-step-07.png" alt="Approval controls wireframe" /></div>
+          <div class="base"></div>
+          <div class="num">7</div>
+          <div class="label">Approve & Generate</div>
+          <p class="caption">Answer generation follows the approved Work Plan.</p>
+          <div class="links"><span>Prototype video</span><span>Test_prompt</span></div>
+        </article>
+      </main>
+
+      <div class="arrow a12">
+        <svg viewBox="0 0 80 58"><defs><marker id="h12" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10" /></marker></defs><path d="M4 48 C18 8 42 14 73 30" marker-end="url(#h12)" /></svg>
+      </div>
+      <div class="arrow a23">
+        <svg viewBox="0 0 80 58"><defs><marker id="h23" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10" /></marker></defs><path d="M4 48 C18 8 42 14 73 30" marker-end="url(#h23)" /></svg>
+      </div>
+      <div class="arrow a34">
+        <svg viewBox="0 0 80 58"><defs><marker id="h34" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10" /></marker></defs><path d="M4 48 C18 8 42 14 73 30" marker-end="url(#h34)" /></svg>
+      </div>
+      <div class="arrow a45">
+        <svg viewBox="0 0 170 126"><defs><marker id="h45" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10" /></marker></defs><path d="M144 8 C168 62 70 36 86 93 C94 123 42 105 14 109" marker-end="url(#h45)" /></svg>
+      </div>
+      <div class="arrow a56">
+        <svg viewBox="0 0 80 58"><defs><marker id="h56" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10" /></marker></defs><path d="M4 48 C18 8 42 14 73 30" marker-end="url(#h56)" /></svg>
+      </div>
+      <div class="arrow a67">
+        <svg viewBox="0 0 80 58"><defs><marker id="h67" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10" /></marker></defs><path d="M4 48 C18 8 42 14 73 30" marker-end="url(#h67)" /></svg>
+      </div>
+    </section>
+  </body>
+</html>

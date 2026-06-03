@@ -1,0 +1,998 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Work Mode Wireframe</title>
+    <style>
+      :root {
+        --bg: #f6f5f1;
+        --surface: #ffffff;
+        --surface-muted: #f2f1ec;
+        --line: #d8d5cc;
+        --line-dark: #aaa59b;
+        --text: #23221f;
+        --muted: #716d65;
+        --soft: #9a958a;
+        --accent: #2f2f2b;
+        --warning: #9b681f;
+        --warning-bg: #f6e7ca;
+        --selected: #fff1e9;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font-family: Inter, "Segoe UI", system-ui, sans-serif;
+        line-height: 1.45;
+      }
+
+      .page {
+        max-width: 1440px;
+        margin: 0 auto;
+        padding: 36px 28px 56px;
+      }
+
+      .intro {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 320px;
+        gap: 24px;
+        align-items: start;
+        margin-bottom: 28px;
+      }
+
+      h1,
+      h2,
+      h3,
+      p {
+        margin: 0;
+      }
+
+      h1 {
+        font-size: 34px;
+        letter-spacing: 0;
+      }
+
+      .dek {
+        margin-top: 10px;
+        max-width: 760px;
+        color: var(--muted);
+        font-size: 16px;
+      }
+
+      .legend,
+      .flow {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--surface);
+        padding: 16px;
+      }
+
+      .legend h2,
+      .flow h2 {
+        font-size: 13px;
+        color: var(--muted);
+        text-transform: uppercase;
+      }
+
+      .legend-list,
+      .flow-list {
+        display: grid;
+        gap: 10px;
+        margin-top: 12px;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .sample {
+        display: inline-block;
+        width: 42px;
+        height: 18px;
+        margin-right: 8px;
+        vertical-align: middle;
+        border: 1px solid var(--line-dark);
+        border-radius: 4px;
+        background: var(--surface-muted);
+      }
+
+      .sample.action {
+        background: var(--accent);
+      }
+
+      .sample.warn {
+        border-color: var(--warning);
+        background: var(--warning-bg);
+      }
+
+      .sample.selected {
+        border-color: #c87f6c;
+        background: var(--selected);
+      }
+
+      .flow {
+        margin-bottom: 28px;
+      }
+
+      .flow-list {
+        grid-template-columns: repeat(7, minmax(120px, 1fr));
+      }
+
+      .flow-step {
+        position: relative;
+        min-height: 74px;
+        padding: 12px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--surface-muted);
+      }
+
+      .flow-step span {
+        display: block;
+        color: var(--soft);
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+      }
+
+      .flow-step strong {
+        display: block;
+        margin-top: 4px;
+        font-size: 13px;
+      }
+
+      .wireframes {
+        display: grid;
+        gap: 28px;
+      }
+
+      .frame {
+        border: 1px solid var(--line-dark);
+        border-radius: 10px;
+        background: var(--surface);
+        box-shadow: 0 12px 28px rgb(38 34 28 / 6%);
+        overflow: hidden;
+      }
+
+      .frame-header {
+        display: flex;
+        justify-content: space-between;
+        gap: 18px;
+        padding: 16px 18px;
+        border-bottom: 1px solid var(--line);
+        background: #fbfaf7;
+      }
+
+      .frame-title {
+        font-size: 15px;
+        font-weight: 800;
+      }
+
+      .frame-note {
+        max-width: 520px;
+        color: var(--muted);
+        font-size: 13px;
+        text-align: right;
+      }
+
+      .canvas {
+        position: relative;
+        min-height: 640px;
+        padding: 24px;
+        background:
+          linear-gradient(var(--bg) 23px, transparent 24px),
+          linear-gradient(90deg, var(--bg) 23px, transparent 24px),
+          #faf9f5;
+        background-size: 24px 24px;
+      }
+
+      .app-shell {
+        position: relative;
+        min-height: 590px;
+        padding-left: 54px;
+      }
+
+      .rail {
+        position: absolute;
+        inset: 0 auto 0 0;
+        width: 42px;
+        border-right: 1px solid var(--line);
+        background: #f8f7f3;
+      }
+
+      .rail-dot {
+        width: 24px;
+        height: 24px;
+        margin: 18px auto;
+        border: 1px solid var(--line-dark);
+        border-radius: 6px;
+        background: var(--surface);
+      }
+
+      .rail-dot.active {
+        border-color: var(--accent);
+        background: var(--surface-muted);
+      }
+
+      .home {
+        display: grid;
+        place-items: center;
+        min-height: 520px;
+      }
+
+      .home-stack {
+        width: min(880px, 92%);
+      }
+
+      .greeting {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 14px;
+        margin-bottom: 48px;
+        font-size: clamp(34px, 4.8vw, 70px);
+        font-family: Georgia, serif;
+      }
+
+      .burst {
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        background: repeating-conic-gradient(#d86448 0 10deg, transparent 10deg 20deg);
+      }
+
+      .composer {
+        min-height: 168px;
+        border: 1px solid var(--line-dark);
+        border-radius: 28px;
+        background: var(--surface);
+        box-shadow: 0 14px 32px rgb(38 34 28 / 8%);
+        padding: 24px;
+      }
+
+      .composer-text {
+        min-height: 72px;
+        color: var(--text);
+        font-size: 18px;
+      }
+
+      .composer-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-top: 22px;
+      }
+
+      .icon-line {
+        width: 24px;
+        height: 24px;
+        border: 2px solid var(--line-dark);
+        border-radius: 5px;
+      }
+
+      .control-group,
+      .chip-row,
+      .quick-row {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .chip,
+      .button,
+      .select,
+      .field,
+      .mini-card {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--surface);
+      }
+
+      .chip {
+        min-height: 34px;
+        padding: 7px 12px;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .button {
+        min-height: 44px;
+        padding: 10px 18px;
+        font-weight: 800;
+      }
+
+      .button.primary {
+        border-color: var(--accent);
+        background: var(--accent);
+        color: #fff;
+      }
+
+      .send {
+        width: 48px;
+        height: 48px;
+        border-radius: 8px;
+        background: var(--accent);
+      }
+
+      .quick-row {
+        justify-content: center;
+        margin-top: 20px;
+      }
+
+      .mode-menu {
+        position: absolute;
+        right: 24px;
+        top: 24px;
+        width: 390px;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        background: var(--surface);
+        box-shadow: 0 18px 42px rgb(38 34 28 / 14%);
+        padding: 18px;
+      }
+
+      .menu-row {
+        padding: 12px 10px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .menu-row:last-child {
+        border-bottom: 0;
+      }
+
+      .menu-title {
+        font-weight: 800;
+      }
+
+      .menu-sub {
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .effort {
+        margin-top: 12px;
+        padding: 12px;
+        border-radius: 8px;
+        background: var(--surface-muted);
+      }
+
+      .effort-row {
+        display: flex;
+        gap: 12px;
+        padding: 9px;
+        border-radius: 6px;
+      }
+
+      .effort-row.active {
+        background: var(--surface);
+      }
+
+      .thread {
+        max-width: 980px;
+        margin: 0 auto;
+      }
+
+      .user-bubble {
+        max-width: 520px;
+        margin-left: auto;
+        margin-bottom: 28px;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        background: var(--surface);
+        padding: 16px 20px;
+        font-size: 16px;
+      }
+
+      .panel {
+        border: 1px solid var(--line-dark);
+        border-radius: 10px;
+        background: var(--surface);
+        padding: 24px;
+      }
+
+      .panel-top {
+        display: flex;
+        justify-content: space-between;
+        gap: 20px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .eyebrow {
+        color: var(--soft);
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: 0;
+        text-transform: uppercase;
+      }
+
+      .headline {
+        margin-top: 6px;
+        font-size: 25px;
+        font-weight: 850;
+      }
+
+      .subhead {
+        margin-top: 6px;
+        color: var(--muted);
+        font-size: 16px;
+      }
+
+      .badge {
+        align-self: start;
+        border: 1px solid var(--line-dark);
+        border-radius: 8px;
+        padding: 10px 14px;
+        background: var(--surface-muted);
+        font-weight: 800;
+      }
+
+      .badge.warn {
+        border-color: var(--warning);
+        background: var(--warning-bg);
+        color: var(--warning);
+      }
+
+      .section {
+        margin-top: 20px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #fbfaf7;
+        padding: 16px;
+      }
+
+      .section.warn {
+        border-color: var(--warning);
+        background: var(--warning-bg);
+      }
+
+      .grid-3 {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 14px;
+        margin-top: 20px;
+      }
+
+      .grid-2 {
+        display: grid;
+        grid-template-columns: minmax(0, 1.8fr) minmax(260px, 0.8fr);
+        gap: 16px;
+        margin-top: 18px;
+      }
+
+      .label {
+        margin-bottom: 8px;
+        color: var(--soft);
+        font-size: 12px;
+        font-weight: 800;
+        text-transform: uppercase;
+      }
+
+      .select,
+      .field {
+        min-height: 48px;
+        padding: 12px 14px;
+        font-size: 16px;
+      }
+
+      .field.tall {
+        min-height: 132px;
+      }
+
+      .footer-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 18px;
+        margin-top: 24px;
+        padding-top: 18px;
+        border-top: 1px solid var(--line);
+      }
+
+      .skill-list,
+      .module-list,
+      .edit-list {
+        display: grid;
+        gap: 12px;
+        margin-top: 14px;
+      }
+
+      .skill-card,
+      .module-card {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #fbfaf7;
+        padding: 16px;
+      }
+
+      .skill-card.selected,
+      .module-card.selected {
+        border-color: #c87f6c;
+        background: var(--selected);
+      }
+
+      .card-line {
+        display: flex;
+        justify-content: space-between;
+        gap: 14px;
+      }
+
+      .module-card {
+        display: flex;
+        align-items: flex-start;
+        gap: 14px;
+      }
+
+      .box {
+        width: 20px;
+        height: 20px;
+        border: 2px solid var(--line-dark);
+        border-radius: 4px;
+        background: var(--surface);
+      }
+
+      .box.checked {
+        border-color: var(--accent);
+        background: var(--accent);
+      }
+
+      .status-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 16px;
+      }
+
+      .editor-section {
+        margin-top: 20px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #fbfaf7;
+        padding: 16px;
+      }
+
+      .editor-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 14px;
+      }
+
+      .edit-row {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 110px;
+        gap: 10px;
+      }
+
+      .validation-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        margin-top: 20px;
+      }
+
+      .validation {
+        border: 1px solid var(--line-dark);
+        border-radius: 8px;
+        padding: 16px;
+      }
+
+      .validation.error {
+        border-color: #a94d4d;
+        background: #f1d4d4;
+      }
+
+      .validation.warning {
+        border-color: var(--warning);
+        background: var(--warning-bg);
+      }
+
+      .payload {
+        margin-top: 20px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #fbfaf7;
+        padding: 16px;
+      }
+
+      pre {
+        margin: 14px 0 0;
+        overflow: hidden;
+        border-radius: 8px;
+        background: #fff;
+        padding: 16px;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.5;
+        white-space: pre-wrap;
+      }
+
+      @media (max-width: 900px) {
+        .intro,
+        .grid-2,
+        .grid-3,
+        .validation-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .flow-list {
+          grid-template-columns: 1fr 1fr;
+        }
+
+        .mode-menu {
+          position: static;
+          width: auto;
+          margin-left: 54px;
+        }
+
+        .frame-header,
+        .panel-top,
+        .footer-bar {
+          flex-direction: column;
+        }
+
+        .frame-note {
+          text-align: left;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <section class="intro">
+        <div>
+          <h1>Work Mode Wireframe</h1>
+          <p class="dek">
+            Low-fidelity wireframe based on the shared screenshots, ordered as the user journey from selecting Work mode to approving a generated Work Plan.
+          </p>
+        </div>
+        <aside class="legend" aria-label="Wireframe legend">
+          <h2>Legend</h2>
+          <div class="legend-list">
+            <div><span class="sample"></span>Standard panel or field</div>
+            <div><span class="sample selected"></span>Selected recommendation</div>
+            <div><span class="sample warn"></span>Warning or low confidence</div>
+            <div><span class="sample action"></span>Primary action</div>
+          </div>
+        </aside>
+      </section>
+
+      <section class="flow" aria-label="Ordered flow">
+        <h2>Screen Order</h2>
+        <div class="flow-list">
+          <div class="flow-step"><span>01</span><strong>Mode selector</strong></div>
+          <div class="flow-step"><span>02</span><strong>Prompt composer</strong></div>
+          <div class="flow-step"><span>03</span><strong>Routing review</strong></div>
+          <div class="flow-step"><span>04</span><strong>Skill suggestions</strong></div>
+          <div class="flow-step"><span>05</span><strong>Module selection</strong></div>
+          <div class="flow-step"><span>06</span><strong>Editable plan</strong></div>
+          <div class="flow-step"><span>07</span><strong>Approval bar</strong></div>
+        </div>
+      </section>
+
+      <section class="wireframes">
+        <article class="frame">
+          <header class="frame-header">
+            <div>
+              <p class="eyebrow">Screen 01</p>
+              <h2 class="frame-title">Open Mode Selector And Choose Work</h2>
+            </div>
+            <p class="frame-note">The user opens the model/effort menu and selects Work mode. The sidebar remains visible but secondary.</p>
+          </header>
+          <div class="canvas">
+            <div class="app-shell">
+              <div class="rail">
+                <div class="rail-dot"></div>
+                <div class="rail-dot active"></div>
+                <div class="rail-dot"></div>
+                <div class="rail-dot"></div>
+                <div class="rail-dot"></div>
+                <div class="rail-dot active"></div>
+              </div>
+              <div class="home">
+                <div class="home-stack">
+                  <div class="greeting"><span class="burst"></span><span>Good afternoon, Divya</span></div>
+                  <div class="composer">
+                    <div class="composer-text">How can I help you today?</div>
+                    <div class="composer-row">
+                      <div class="icon-line"></div>
+                      <div class="control-group">
+                        <div class="chip">Sonnet 4.6 Work</div>
+                        <div class="icon-line"></div>
+                        <div class="icon-line"></div>
+                        <div class="send"></div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="quick-row">
+                    <div class="chip">Write</div>
+                    <div class="chip">Learn</div>
+                    <div class="chip">Code</div>
+                    <div class="chip">From Calendar</div>
+                    <div class="chip">From Gmail</div>
+                  </div>
+                </div>
+              </div>
+              <aside class="mode-menu">
+                <div class="menu-row"><p class="menu-title">Opus 4.8</p><p class="menu-sub">Most capable for ambitious work</p></div>
+                <div class="menu-row"><p class="menu-title">Sonnet 4.6</p><p class="menu-sub">Most efficient for everyday tasks</p></div>
+                <div class="menu-row"><p class="menu-title">Haiku 4.5</p><p class="menu-sub">Fastest for quick answers</p></div>
+                <div class="effort">
+                  <p class="menu-title">Effort</p>
+                  <div class="effort-row"><strong>Low</strong><span class="menu-sub">Default</span></div>
+                  <div class="effort-row"><strong>Medium</strong><span class="menu-sub">More thorough</span></div>
+                  <div class="effort-row"><strong>High</strong><span class="menu-sub">Deeper analysis</span></div>
+                  <div class="effort-row"><strong>Max</strong><span class="menu-sub">Most effort</span></div>
+                  <div class="effort-row"><strong>Thinking</strong><span class="menu-sub">Complex tasks</span></div>
+                  <div class="effort-row active"><strong>Work</strong><span class="menu-sub">Plan first</span></div>
+                </div>
+              </aside>
+            </div>
+          </div>
+        </article>
+
+        <article class="frame">
+          <header class="frame-header">
+            <div>
+              <p class="eyebrow">Screen 02</p>
+              <h2 class="frame-title">Prompt Entry Home State</h2>
+            </div>
+            <p class="frame-note">The composer is the first active surface. Quick action chips sit below the large input.</p>
+          </header>
+          <div class="canvas">
+            <div class="home">
+              <div class="home-stack">
+                <div class="greeting"><span class="burst"></span><span>Good afternoon, Divya</span></div>
+                <div class="composer">
+                  <div class="composer-text">Hi, I want to create a website for my shop</div>
+                  <div class="composer-row">
+                    <div class="icon-line"></div>
+                    <div class="control-group">
+                      <div class="chip">Sonnet 4.6 Work</div>
+                      <div class="icon-line"></div>
+                      <div class="icon-line"></div>
+                      <div class="send"></div>
+                    </div>
+                  </div>
+                </div>
+                <div class="quick-row">
+                  <div class="chip">Write</div>
+                  <div class="chip">Learn</div>
+                  <div class="chip">Code</div>
+                  <div class="chip">From Calendar</div>
+                  <div class="chip">From Gmail</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <article class="frame">
+          <header class="frame-header">
+            <div>
+              <p class="eyebrow">Screen 03</p>
+              <h2 class="frame-title">Review Work Mode Routing</h2>
+            </div>
+            <p class="frame-note">Low-confidence detection requires the user to confirm or adjust role, artifact, and workflow before suggestions.</p>
+          </header>
+          <div class="canvas">
+            <div class="thread">
+              <div class="user-bubble">Hi, I want to create a website for my shop</div>
+              <section class="panel">
+                <div class="panel-top">
+                  <div>
+                    <p class="eyebrow">Detected</p>
+                    <h3 class="headline">Review Work Mode routing</h3>
+                    <p class="subhead">Confirm the role, artifact, and workflow before suggestions.</p>
+                  </div>
+                  <div class="badge warn">Low confidence 47%</div>
+                </div>
+                <div class="section">
+                  <p class="label">Original prompt</p>
+                  <p>Hi, I want to create a website for my shop</p>
+                </div>
+                <div class="section warn">
+                  <p><strong>Confidence is low.</strong></p>
+                  <p class="subhead">Confirm or adjust the detection before continuing.</p>
+                </div>
+                <div class="grid-3">
+                  <div><p class="label">Role</p><div class="select">Software Architect</div></div>
+                  <div><p class="label">Artifact</p><div class="select">Frontend App</div></div>
+                  <div><p class="label">Workflow</p><div class="select">Frontend Web</div></div>
+                </div>
+                <div class="grid-2">
+                  <div class="section"><p class="label">Reason</p><p>The prompt has weak signals, so Work Mode selected a safe default and asks for clarification.</p></div>
+                  <div class="section"><p class="label">Source mode</p><p><strong>None</strong></p><p class="subhead">Backend retrieval is not connected.</p></div>
+                </div>
+                <div class="section">
+                  <p class="label">Questions</p>
+                  <p>- What artifact should the answer produce?</p>
+                  <p>- Who is the audience for the final answer?</p>
+                </div>
+                <div class="footer-bar">
+                  <p class="subhead">Selected: <strong>Software Architect, Frontend App, Frontend Web</strong></p>
+                  <div class="button primary">Continue to suggestions</div>
+                </div>
+              </section>
+            </div>
+          </div>
+        </article>
+
+        <article class="frame">
+          <header class="frame-header">
+            <div>
+              <p class="eyebrow">Screen 04</p>
+              <h2 class="frame-title">Choose Skill And Work Plan Modules</h2>
+            </div>
+            <p class="frame-note">The selected workflow is summarized at top; the user can switch skill before selecting modules.</p>
+          </header>
+          <div class="canvas">
+            <div class="thread">
+              <div class="user-bubble">Hi, I want to create a website for my shop</div>
+              <section class="panel">
+                <div class="panel-top">
+                  <div>
+                    <p class="eyebrow">Suggestions</p>
+                    <h3 class="headline">Choose Work Plan modules</h3>
+                    <p class="subhead">Select what the editable Work Plan should include.</p>
+                  </div>
+                  <div class="badge selected">Frontend Web</div>
+                </div>
+                <div class="grid-2">
+                  <div class="section"><p class="label">Workflow reason</p><p><strong>Frontend App Builder</strong></p><p class="subhead">Best for frontend build plans, UI states, API data flow, accessibility, and responsive QA.</p></div>
+                  <div class="section"><p class="label">Source mode</p><p><strong>None</strong></p><p class="subhead">Source behavior for planning.</p></div>
+                </div>
+                <p class="label" style="margin-top: 20px">Skill</p>
+                <div class="skill-list">
+                  <div class="skill-card"><div class="card-line"><strong>Investor Deck Builder</strong><span class="subhead">Slide Deck / PPT</span></div><p class="subhead">Builds slide narratives and investor-ready framing.</p></div>
+                  <div class="skill-card"><div class="card-line"><strong>PRD Builder</strong><span class="subhead">PRD Generation</span></div><p class="subhead">Frames requirements, scope, users, and rollout risks.</p></div>
+                  <div class="skill-card"><div class="card-line"><strong>Bug Fix Planner</strong><span class="subhead">Debugging / Bug Fix</span></div><p class="subhead">Plans reproduction, root cause, implementation, and validation.</p></div>
+                  <div class="skill-card"><div class="card-line"><strong>Backend API Builder</strong><span class="subhead">Backend Software</span></div><p class="subhead">Plans APIs, services, data models, auth, tests, and deployment.</p></div>
+                  <div class="skill-card selected"><div class="card-line"><strong>Frontend App Builder</strong><span class="subhead">Frontend Web</span></div><p class="subhead">Plans web UI, state, components, accessibility, responsive behavior, and tests.</p></div>
+                </div>
+              </section>
+            </div>
+          </div>
+        </article>
+
+        <article class="frame">
+          <header class="frame-header">
+            <div>
+              <p class="eyebrow">Screen 05</p>
+              <h2 class="frame-title">Module Selection</h2>
+            </div>
+            <p class="frame-note">Recommended modules are preselected. Optional modules remain available before creating the editable Work Plan.</p>
+          </header>
+          <div class="canvas">
+            <div class="thread">
+              <section class="panel">
+                <p class="label">Modules</p>
+                <div class="module-list">
+                  <div class="module-card selected"><span class="box checked"></span><div><strong>Assumptions</strong> <span class="chip">Recommended</span><p class="subhead">State what the answer will assume before drafting.</p></div></div>
+                  <div class="module-card selected"><span class="box checked"></span><div><strong>Implementation plan</strong> <span class="chip">Recommended</span><p class="subhead">Break execution into practical build or rollout steps.</p></div></div>
+                  <div class="module-card selected"><span class="box checked"></span><div><strong>Validation checklist</strong> <span class="chip">Recommended</span><p class="subhead">Add checks the final answer must satisfy.</p></div></div>
+                  <div class="module-card selected"><span class="box checked"></span><div><strong>Test cases</strong> <span class="chip">Recommended</span><p class="subhead">Define cases needed to verify the fix or output.</p></div></div>
+                  <div class="module-card selected"><span class="box checked"></span><div><strong>Risk analysis</strong> <span class="chip">Recommended</span><p class="subhead">Identify risks, unknowns, mitigations, and review needs.</p></div></div>
+                  <div class="module-card"><span class="box"></span><div><strong>User personas</strong><p class="subhead">Clarify users, needs, pain points, and priority segments.</p></div></div>
+                  <div class="module-card"><span class="box"></span><div><strong>Metrics</strong><p class="subhead">Define success measures, guardrails, and tracking signals.</p></div></div>
+                  <div class="module-card"><span class="box"></span><div><strong>API examples</strong><p class="subhead">Include request/response examples where useful.</p></div></div>
+                </div>
+                <div class="footer-bar">
+                  <p class="subhead"><strong>5</strong> modules selected</p>
+                  <div class="button primary">Create Work Plan</div>
+                </div>
+              </section>
+            </div>
+          </div>
+        </article>
+
+        <article class="frame">
+          <header class="frame-header">
+            <div>
+              <p class="eyebrow">Screen 06</p>
+              <h2 class="frame-title">Editable Work Plan</h2>
+            </div>
+            <p class="frame-note">The generated plan is editable. Autosave status and work metadata stay visible in the header.</p>
+          </header>
+          <div class="canvas">
+            <div class="thread">
+              <div class="user-bubble">Hi, I want to create a website for my shop</div>
+              <section class="panel">
+                <div class="panel-top">
+                  <div>
+                    <p class="eyebrow">Work Plan</p>
+                    <h3 class="headline">Editable Work Plan</h3>
+                    <p class="subhead">Review and edit the roadmap before answer generation.</p>
+                    <div class="status-row">
+                      <span class="chip">Software Architect</span>
+                      <span class="chip">Frontend App</span>
+                      <span class="chip selected">Frontend Web</span>
+                      <span class="chip">None</span>
+                    </div>
+                  </div>
+                  <div class="control-group"><span class="chip selected">draft</span><span class="chip">Saved</span></div>
+                </div>
+                <div class="editor-section">
+                  <p class="label">Objective</p>
+                  <div class="field tall">Create a frontend web implementation roadmap for: Hi, I want to create a website for my shop</div>
+                </div>
+                <div class="editor-section">
+                  <div class="editor-header"><p class="label">Assumptions</p><div class="button">Add assumption</div></div>
+                  <div class="edit-list">
+                    <div class="edit-row"><div class="field">The user wants a usable frontend implementation plan with UI states and responsive behavior.</div><div class="button">Remove</div></div>
+                    <div class="edit-row"><div class="field">Accessibility, loading states, errors, and tests should be considered before final generation.</div><div class="button">Remove</div></div>
+                  </div>
+                </div>
+                <div class="editor-section">
+                  <div class="editor-header"><p class="label">Missing context</p><div class="button">Add missing context</div></div>
+                  <div class="edit-list">
+                    <div class="edit-row"><div class="field">Design references</div><div class="button">Remove</div></div>
+                    <div class="edit-row"><div class="field">Target devices</div><div class="button">Remove</div></div>
+                    <div class="edit-row"><div class="field">API availability</div><div class="button">Remove</div></div>
+                    <div class="edit-row"><div class="field">Accessibility requirements</div><div class="button">Remove</div></div>
+                  </div>
+                </div>
+              </section>
+            </div>
+          </div>
+        </article>
+
+        <article class="frame">
+          <header class="frame-header">
+            <div>
+              <p class="eyebrow">Screen 07</p>
+              <h2 class="frame-title">Approval And Generation Controls</h2>
+            </div>
+            <p class="frame-note">The bottom of the editor shows validation state, approval status, primary actions, and an optional payload preview.</p>
+          </header>
+          <div class="canvas">
+            <div class="thread">
+              <section class="panel">
+                <div class="editor-section">
+                  <div class="edit-list">
+                    <div class="edit-row"><div class="field">User workflow and UI states must be explicit.</div><div class="button">Remove</div></div>
+                    <div class="edit-row"><div class="field">Data flow and API dependencies must be addressed.</div><div class="button">Remove</div></div>
+                    <div class="edit-row"><div class="field">Accessibility and responsive behavior must be checked.</div><div class="button">Remove</div></div>
+                    <div class="edit-row"><div class="field">Tests must cover interaction and failure states.</div><div class="button">Remove</div></div>
+                  </div>
+                </div>
+                <div class="validation-grid">
+                  <div class="validation error"><strong>Blocking errors</strong><p class="subhead">None.</p></div>
+                  <div class="validation warning"><strong>Warnings</strong><p class="subhead">- Missing context still has unresolved items.</p></div>
+                </div>
+                <div class="footer-bar section">
+                  <p><strong>approved</strong> <span class="subhead">- Saved - version 2</span></p>
+                  <div class="control-group">
+                    <div class="button">Approve Work Plan</div>
+                    <div class="button primary">Generate Answer</div>
+                  </div>
+                </div>
+                <div class="payload">
+                  <p><strong>Update payload</strong></p>
+                  <pre>{
+  "version": 2,
+  "plan": {
+    "status": "approved",
+    "prompt": "Hi, I want to create a website for my shop",
+    "role": "Software Architect",
+    "artifact": "Frontend App",
+    "workflowId": "frontend_web",
+    "skillId": "frontend_app_builder"
+  }
+}</pre>
+                </div>
+              </section>
+            </div>
+          </div>
+        </article>
+      </section>
+    </main>
+  </body>
+</html>
